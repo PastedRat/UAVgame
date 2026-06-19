@@ -63,6 +63,9 @@
   .overlay-screen .sub { color: var(--phosphor-dim); font-size: 13px; letter-spacing: 0.08em; max-width: 560px; line-height: 1.7; }
   .start-btn { margin-top: 14px; background: transparent; border: 1px solid var(--phosphor); color: var(--phosphor-bright); padding: 12px 34px; font-family: var(--mono); font-size: 14px; letter-spacing: 0.12em; cursor: pointer; text-transform: uppercase; transition: all 0.15s; }
   .start-btn:hover { background: rgba(95,255,143,0.12); box-shadow: 0 0 20px rgba(95,255,143,0.3); }
+  .mute-btn { background: transparent; border: 1px solid var(--phosphor-dim); color: var(--phosphor-bright); padding: 8px 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; }
+  .mute-btn:hover { border-color: var(--phosphor); background: rgba(95,255,143,0.10); }
+  .overlay-screen .mute-btn { margin-top: -4px; }
   .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
   .stat-grid .item .v { font-size: 26px; color: var(--phosphor-bright); }
   .stat-grid .item .l { font-size: 10px; color: var(--phosphor-dim); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -74,6 +77,11 @@
   .codex-item .nm { color: var(--phosphor-bright); font-size: 12px; font-weight: 700; }
   .codex-item .kn { color: var(--amber); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
   .codex-item .acc { font-size: 9px; color: var(--phosphor-dim); margin-top: 2px; }
+  .upgrade-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 760px; }
+  .upgrade-card { width: 220px; min-height: 104px; background: rgba(95,255,143,0.05); border: 1px solid var(--phosphor-dim); color: var(--phosphor-bright); padding: 12px; font-family: var(--mono); cursor: pointer; text-align: left; }
+  .upgrade-card:hover { border-color: var(--phosphor); box-shadow: 0 0 18px rgba(95,255,143,0.20); }
+  .upgrade-card .u-title { color: var(--amber); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .upgrade-card .u-desc { color: var(--phosphor-dim); font-size: 10px; line-height: 1.5; }
   .lock-window { position: absolute; left: 16px; bottom: 16px; z-index: 22; width: 200px; height: 150px; background: rgba(6, 12, 8, 0.92); border: 1px solid var(--phosphor-dim); box-shadow: 0 0 18px rgba(95,255,143,0.1); overflow: hidden; }
   .lock-window .lw-title { font-size: 9px; letter-spacing: 0.1em; color: var(--phosphor-dim); padding: 5px 8px; border-bottom: 1px solid rgba(95,255,143,0.15); text-transform: uppercase; }
   .lock-window .lw-screen { position: relative; width: 100%; height: calc(100% - 22px); }
@@ -103,54 +111,97 @@ const { useState, useEffect, useRef, useCallback } = React;
 /* ─── WEAPONS ─────────────────────────────────────────────────────────────── */
 const WEAPONS = {
   manpads: {
-    id:'manpads', key:'1', nameRu:'ПЗРК', nameEn:'Igla MANPADS',
+    id:'manpads', key:'1', class:'missile', nameRu:'ПЗРК', nameEn:'Igla MANPADS',
     fireRate:1400, projSpeed:680, maxRange:570, damage:100, splash:0,
-    magazine:1, reload:3200, tracking:0.20, spread:0,
+    magazine:1, reserve:8, reload:3200, tracking:0.20, spread:0,
+    heatPerShot:0.10, coolRate:0.35, overheatAt:1.0,
     detectBonus:220, auto:false, lockWindow:true,
     projColor:'#fff3c4', trailColor:'rgba(255,243,196,0.55)',
-    desc:'Самонаведение, 1 ракета', trait:'+ Дальний радар',
-    /* no spread penalty vs evasive — it's a seeker head */
-    evasivePenalty: 0,
+    desc:'Самонаведение, 1 ракета', trait:'+ Дальний ИК/радар', evasivePenalty:0,
   },
-  mobile_group: {
-    id:'mobile_group', key:'2', nameRu:'Мобильная Группа', nameEn:'Mobile AA Team',
-    fireRate:240, projSpeed:900, maxRange:360, damage:20, splash:0,
-    magazine:30, reload:1800, tracking:0, spread:0.085,
+  zu23: {
+    id:'zu23', key:'2', class:'cannon', nameRu:'ЗУ-23-2', nameEn:'ZU-23-2 Twin AA',
+    fireRate:105, projSpeed:970, maxRange:410, damage:18, splash:0,
+    magazine:100, reserve:360, reload:2600, tracking:0, spread:0.036,
+    heatPerShot:0.022, coolRate:0.28, overheatAt:1.0,
     detectBonus:0, auto:true, lockWindow:false,
     projColor:'#ffe18a', trailColor:'rgba(255,225,138,0.32)',
-    desc:'Стрелковое оружие', trait:'Авто · Сильный разброс по быстрым',
-    /* extra spread added vs fast evasive targets */
-    evasivePenalty: 0.12,
+    desc:'Ручная спаренная пушка', trait:'Авто · дешёвые БК', evasivePenalty:0.07,
   },
   shilka: {
-    id:'shilka', key:'3', nameRu:'Шилка', nameEn:'ZSU-23-4',
+    id:'shilka', key:'3', class:'radar_cannon', nameRu:'Шилка', nameEn:'ZSU-23-4',
     fireRate:70, projSpeed:1250, maxRange:500, damage:14, splash:0,
-    magazine:80, reload:2800, tracking:0, spread:0.046,
+    magazine:80, reserve:420, reload:2800, tracking:0, spread:0.046,
+    heatPerShot:0.026, coolRate:0.24, overheatAt:1.0,
     detectBonus:60, auto:true, lockWindow:false,
     projColor:'#ff9d4d', trailColor:'rgba(255,157,77,0.42)',
-    desc:'Счетверённая установка', trait:'Авто · Разброс по маневренным',
-    evasivePenalty: 0.065,
+    desc:'Счетверённая установка', trait:'Радар · нагрев', evasivePenalty:0.055,
   },
-  optics_mg: {
-    id:'optics_mg', key:'4', nameRu:'Пулемёт с оптикой', nameEn:'Scoped HMG',
-    fireRate:160, projSpeed:1550, maxRange:340, damage:17, splash:0,
-    magazine:50, reload:1600, tracking:0, spread:0.005,
-    detectBonus:0, auto:true, lockWindow:false,
+  gepard: {
+    id:'gepard', key:'4', class:'radar_cannon', nameRu:'Гепард', nameEn:'Gepard SPAAG',
+    fireRate:95, projSpeed:1440, maxRange:560, damage:24, splash:0,
+    magazine:70, reserve:280, reload:3000, tracking:0.06, spread:0.018,
+    heatPerShot:0.034, coolRate:0.25, overheatAt:1.0,
+    detectBonus:120, auto:true, lockWindow:true,
     projColor:'#9dffb0', trailColor:'rgba(157,255,176,0.4)',
-    desc:'Прицельный огонь', trait:'Авто · Почти нет разброса',
-    evasivePenalty: 0.03,
+    desc:'Радарная автопушка', trait:'Точное сопровождение', evasivePenalty:0.02,
   },
-  pantsir: {
-    id:'pantsir', key:'5', nameRu:'Панцирь С1', nameEn:'Pantsir-S1',
-    fireRate:650, projSpeed:1050, maxRange:720, damage:62, splash:45,
-    magazine:12, reload:4200, tracking:0.14, spread:0.016,
-    detectBonus:140, auto:false, lockWindow:true,
-    projColor:'#ff5d5d', trailColor:'rgba(255,93,93,0.45)',
-    desc:'Ракетно-пушечный комплекс', trait:'Сплэш + дальний радар',
-    evasivePenalty: 0,
+  s60: {
+    id:'s60', key:'5', class:'flak', nameRu:'С-60 57мм', nameEn:'S-60 57mm Flak',
+    fireRate:680, projSpeed:980, maxRange:640, damage:78, splash:48, proximity:42,
+    magazine:8, reserve:42, reload:3600, tracking:0, spread:0.014,
+    heatPerShot:0.05, coolRate:0.30, overheatAt:1.0,
+    detectBonus:30, auto:false, lockWindow:false,
+    projColor:'#ffd98a', trailColor:'rgba(255,217,138,0.42)',
+    desc:'Фугасный снаряд', trait:'Прокс. взрыватель / flak', evasivePenalty:0.015,
+  },
+  nasams: {
+    id:'nasams', key:'6', class:'sam', nameRu:'NASAMS / IRIS-T', nameEn:'Medium SAM Launcher',
+    fireRate:1800, projSpeed:900, maxRange:920, damage:155, splash:70, proximity:55,
+    magazine:2, reserve:6, reload:5200, tracking:0.26, spread:0,
+    heatPerShot:0.08, coolRate:0.35, overheatAt:1.0,
+    detectBonus:260, auto:false, lockWindow:true,
+    projColor:'#8fd7ff', trailColor:'rgba(143,215,255,0.55)',
+    desc:'Дальняя ракета', trait:'Дорого · дальний перехват', evasivePenalty:0,
+  },
+  jammer: {
+    id:'jammer', key:'7', class:'ew', nameRu:'РЭБ-станция', nameEn:'EW Jammer',
+    fireRate:650, projSpeed:0, maxRange:300, damage:0, splash:95,
+    magazine:10, reserve:35, reload:4400, tracking:0, spread:0.35,
+    heatPerShot:0.11, coolRate:0.22, overheatAt:1.0,
+    detectBonus:-40, auto:true, lockWindow:false,
+    projColor:'#62ffe0', trailColor:'rgba(98,255,224,0.25)',
+    desc:'Подавляет FPV/релейные', trait:'Не убивает · глушит', evasivePenalty:0,
+  },
+  netgun: {
+    id:'netgun', key:'8', class:'net', nameRu:'Анти-FPV сеть', nameEn:'Shotgun Net Launcher',
+    fireRate:900, projSpeed:520, maxRange:170, damage:34, splash:34, proximity:26,
+    magazine:2, reserve:16, reload:2100, tracking:0, spread:0.11,
+    heatPerShot:0.06, coolRate:0.4, overheatAt:1.0,
+    detectBonus:0, auto:false, lockWindow:false,
+    projColor:'#c8ffd9', trailColor:'rgba(200,255,217,0.35)',
+    desc:'Короткая дистанция', trait:'Лучше против малых БПЛА', evasivePenalty:-0.02,
+  },
+  dazzler: {
+    id:'dazzler', key:'9', class:'laser', nameRu:'Лазер-ослепитель', nameEn:'Laser Dazzler',
+    fireRate:120, projSpeed:0, maxRange:430, damage:4, splash:0,
+    magazine:140, reserve:260, reload:2400, tracking:0, spread:0.022,
+    heatPerShot:0.018, coolRate:0.20, overheatAt:1.0,
+    detectBonus:30, auto:true, lockWindow:true,
+    projColor:'#ff5dff', trailColor:'rgba(255,93,255,0.35)',
+    desc:'Урон сенсорам', trait:'Ослепляет разведку', evasivePenalty:0.01,
+  },
+  interceptor: {
+    id:'interceptor', key:'0', class:'interceptor', nameRu:'Дрон-перехватчик', nameEn:'Friendly Interceptor',
+    fireRate:2400, projSpeed:430, maxRange:620, damage:65, splash:22,
+    magazine:1, reserve:5, reload:3600, tracking:0.34, spread:0,
+    heatPerShot:0.04, coolRate:0.4, overheatAt:1.0,
+    detectBonus:20, auto:false, lockWindow:true,
+    projColor:'#5fff8f', trailColor:'rgba(95,255,143,0.45)',
+    desc:'Охотится за FPV', trait:'Мини-дрон догоняет цели', evasivePenalty:0,
   },
 };
-const WEAPON_ORDER = ['manpads','mobile_group','shilka','optics_mg','pantsir'];
+const WEAPON_ORDER = ['manpads','zu23','shilka','gepard','s60','nasams','jammer','netgun','dazzler','interceptor'];
 
 /* ─── DRONE TYPES — now with realistic silhouette keys ───────────────────── */
 /*
@@ -165,46 +216,61 @@ const WEAPON_ORDER = ['manpads','mobile_group','shilka','optics_mg','pantsir'];
 */
 const DRONE_TYPES = [
   {
-    model:'Shahed-136', shape:'shahed136', kind:'loitering munition',
-    speed:65, hp:55, radarSig:0.60, w:44, h:22,
+    model:'Shahed-136', shape:'shahed136', kind:'loitering munition', role:'strike',
+    speed:65, hp:55, radarSig:0.60, visualSig:0.72, thermalSig:0.55, acousticSig:0.58, ewResist:0.60, payload:18, w:44, h:22,
     color:'#2e3028', accent:'#5a6040', wingColor:'#242820', threat:'high',
     evasive:false,
   },
   {
-    model:'Shahed-131', shape:'shahed131', kind:'compact kamikaze',
-    speed:72, hp:38, radarSig:0.48, w:34, h:17,
+    model:'Shahed-131', shape:'shahed131', kind:'swarm kamikaze', role:'swarm',
+    speed:72, hp:38, radarSig:0.48, visualSig:0.58, thermalSig:0.48, acousticSig:0.52, ewResist:0.55, payload:16, swarm:2, w:34, h:17,
     color:'#2a2e24', accent:'#4a5234', wingColor:'#20261c', threat:'high',
     evasive:false,
   },
   {
-    model:'Orlan-10', shape:'orlan10', kind:'recon / relay',
-    speed:80, hp:50, radarSig:0.65, w:36, h:14,
+    model:'Orlan-10', shape:'orlan10', kind:'recon / relay', role:'recon',
+    speed:80, hp:50, radarSig:0.65, visualSig:0.70, thermalSig:0.38, acousticSig:0.34, ewResist:0.70, payload:4, spotsBase:true, w:36, h:14,
     color:'#8a8a7a', accent:'#555548', threat:'med',
     evasive:false,
   },
   {
-    model:'Lancet', shape:'lancet', kind:'loitering munition',
-    speed:100, hp:28, radarSig:0.32, w:28, h:18,
+    model:'Lancet', shape:'lancet', kind:'evasive loitering munition', role:'hunter',
+    speed:100, hp:28, radarSig:0.32, visualSig:0.42, thermalSig:0.50, acousticSig:0.44, ewResist:0.80, payload:20, attacksSystems:true, w:28, h:18,
     color:'#1e2020', accent:'#62ffe0', threat:'high',
     evasive:true,
   },
   {
-    model:'FPV-камикадзе', shape:'fpv_racer', kind:'fpv kamikaze',
-    speed:180, hp:8, radarSig:0.14, w:12, h:12,
+    model:'FPV-камикадзе', shape:'fpv_racer', kind:'fpv kamikaze', role:'fpv',
+    speed:180, hp:8, radarSig:0.14, visualSig:0.18, thermalSig:0.28, acousticSig:0.64, ewResist:0.28, payload:9, terminalSprint:true, w:12, h:12,
     color:'#1a1a1a', accent:'#ff4040', threat:'med',
     evasive:true,
   },
   {
-    model:'Mohajer-6', shape:'mohajer', kind:'strike / recon',
-    speed:88, hp:80, radarSig:0.72, w:38, h:14,
+    model:'Mohajer-6', shape:'mohajer', kind:'decoy / strike / recon', role:'decoy',
+    speed:88, hp:80, radarSig:1.15, visualSig:0.76, thermalSig:0.50, acousticSig:0.38, ewResist:0.65, payload:6, decoy:true, w:38, h:14,
     color:'#9a9a88', accent:'#4a4a3a', threat:'critical',
     evasive:false,
   },
   {
-    model:'Vampire-Hex', shape:'quad_heavy', kind:'heavy bomber hexacopter',
-    speed:44, hp:180, radarSig:0.90, w:46, h:30,
+    model:'Vampire-Hex', shape:'quad_heavy', kind:'heavy bomber hexacopter', role:'bomber',
+    speed:44, hp:180, radarSig:0.90, visualSig:0.92, thermalSig:0.82, acousticSig:0.96, ewResist:0.45, payload:30, bomber:true, w:46, h:30,
     color:'#181818', accent:'#666', threat:'critical',
     evasive:false,
+  },
+  {
+    model:'EW Глушитель', shape:'orlan10', kind:'stand-off jammer', role:'ew',
+    speed:70, hp:65, radarSig:0.58, visualSig:0.62, thermalSig:0.36, acousticSig:0.30, ewResist:0.95, payload:3, jamsRadar:true, w:36, h:14,
+    color:'#30384a', accent:'#62ffe0', threat:'high', evasive:false,
+  },
+  {
+    model:'FPV Relay', shape:'quad_heavy', kind:'control relay', role:'relay',
+    speed:58, hp:70, radarSig:0.50, visualSig:0.56, thermalSig:0.50, acousticSig:0.70, ewResist:0.75, payload:4, buffsFpv:true, w:34, h:24,
+    color:'#202028', accent:'#8fd7ff', threat:'high', evasive:false,
+  },
+  {
+    model:'Jet Target', shape:'lancet', kind:'jet-powered drone missile', role:'jet',
+    speed:250, hp:24, radarSig:0.42, visualSig:0.36, thermalSig:0.96, acousticSig:0.82, ewResist:0.88, payload:22, terminalSprint:true, w:30, h:14,
+    color:'#202020', accent:'#ffb13d', threat:'critical', evasive:true,
   },
 ];
 
@@ -213,6 +279,129 @@ function dist(x1,y1,x2,y2){ return Math.hypot(x1-x2, y1-y2); }
 function angDiff(a,b){ let d=a-b; while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2; return d; }
 function lerpAngle(a,b,t){ return a+angDiff(b,a)*Math.min(t,1); }
 function compassFromAngle(rad){ const deg=(rad*180/Math.PI+360)%360; const dirs=['В','ЮВ','Ю','ЮЗ','З','СЗ','С','СВ']; return dirs[Math.round(deg/45)%8]; }
+
+function clamp(v,min=0,max=1){ return Math.max(min, Math.min(max, v)); }
+const SENSOR_LABELS = { radar:'РЛС', visual:'ОПТИКА', thermal:'ИК', acoustic:'АКУСТИКА' };
+const WEATHER_PRESETS = [
+  { id:'clear_day', name:'Ясный день', radar:1.0, visual:1.0, thermal:0.82, acoustic:0.95, ew:1.0 },
+  { id:'night', name:'Ночь', radar:1.0, visual:0.42, thermal:1.25, acoustic:1.05, ew:1.0 },
+  { id:'fog', name:'Туман', radar:0.92, visual:0.48, thermal:0.68, acoustic:1.1, ew:1.0 },
+  { id:'rain', name:'Дождь', radar:0.74, visual:0.62, thermal:0.78, acoustic:0.72, ew:1.08 },
+];
+const UPGRADE_CHOICES = [
+  { id:'radar', label:'Улучшить РЛС', desc:'+12% radar range', apply:w=>w.upgrades.radar+=0.12 },
+  { id:'thermal', label:'Тепловизор', desc:'+16% IR detection', apply:w=>w.upgrades.thermal+=0.16 },
+  { id:'ammo', label:'Склад БК', desc:'+30% reserve ammo', apply:w=>w.upgrades.ammo+=0.30 },
+  { id:'reload', label:'Расчёт перезарядки', desc:'-10% reload time', apply:w=>w.upgrades.reload+=0.10 },
+  { id:'harden', label:'Укрепить базу', desc:'+15 integrity', apply:w=>w.integrity=Math.min(140,w.integrity+15) },
+  { id:'fcs', label:'Fire-control computer', desc:'+tracking / less spread', apply:w=>w.upgrades.fcs+=0.10 },
+  { id:'ew', label:'EW station', desc:'+jammer strength', apply:w=>w.upgrades.ew+=0.14 },
+  { id:'id', label:'Drone ID database', desc:'faster model recognition', apply:w=>w.upgrades.ident+=0.20 },
+];
+function chooseUpgradeOptions(wave){ return UPGRADE_CHOICES.slice().sort((a,b)=>(Math.sin(wave*a.id.length)-Math.sin(wave*b.id.length))).slice(0,3); }
+function weatherForWave(wave){ return WEATHER_PRESETS[wave % WEATHER_PRESETS.length]; }
+function sensorSummary(d){ return Object.entries(d.sensors||{}).filter(([,v])=>v>0).map(([k])=>SENSOR_LABELS[k]).join('+') || 'НЕТ'; }
+function knownName(d){ return d.idLevel>=2 ? d.type.model : d.idLevel===1 ? (d.type.radarSig>0.65?'Крупный контакт':'Малый контакт') : 'Неизвестный контакт'; }
+function scoreForDetection(layers){ return Object.values(layers).reduce((m,v)=>Math.max(m,v),0); }
+
+
+const AudioFX = (() => {
+  const storageKey = 'uavgame.muted';
+  let ctx = null;
+  let noiseBuffer = null;
+  let muted = localStorage.getItem(storageKey) === 'true';
+
+  const getCtx = () => {
+    if (muted) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!ctx) ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  };
+
+  const makeNoise = (audioCtx) => {
+    if (noiseBuffer) return noiseBuffer;
+    noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    return noiseBuffer;
+  };
+
+  const env = (audioCtx, start, peak, sustain, end, attack = 0.006) => {
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), start + attack);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, sustain), end * 0.72 + start * 0.28);
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    return gain;
+  };
+
+  const tone = (audioCtx, { type = 'sine', freq = 440, endFreq = freq, start, dur, gain = 0.1, dest }) => {
+    const osc = audioCtx.createOscillator();
+    const g = env(audioCtx, start, gain, gain * 0.35, start + dur);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, endFreq), start + dur);
+    osc.connect(g).connect(dest || audioCtx.destination);
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  };
+
+  const noise = (audioCtx, { start, dur, gain = 0.08, dest, filterType = 'bandpass', freq = 900, q = 0.8 }) => {
+    const src = audioCtx.createBufferSource();
+    const filter = audioCtx.createBiquadFilter();
+    const g = env(audioCtx, start, gain, gain * 0.18, start + dur, 0.002);
+    src.buffer = makeNoise(audioCtx);
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(freq, start);
+    filter.Q.value = q;
+    src.connect(filter).connect(g).connect(dest || audioCtx.destination);
+    src.start(start);
+    src.stop(start + dur + 0.02);
+  };
+
+  const play = (name, variant = {}) => {
+    const audioCtx = getCtx();
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const master = audioCtx.createGain();
+    master.gain.value = 0.55;
+    master.connect(audioCtx.destination);
+
+    if (name === 'fire') {
+      const isMissile = variant.weapon && variant.weapon.tracking > 0;
+      noise(audioCtx, { start:t, dur:isMissile ? 0.16 : 0.055, gain:isMissile ? 0.18 : 0.11, dest:master, filterType:'highpass', freq:isMissile ? 260 : 1200, q:0.4 });
+      tone(audioCtx, { type:'square', freq:isMissile ? 110 : 190, endFreq:isMissile ? 58 : 90, start:t, dur:isMissile ? 0.18 : 0.045, gain:isMissile ? 0.12 : 0.06, dest:master });
+    } else if (name === 'reload') {
+      tone(audioCtx, { type:'triangle', freq:360, endFreq:160, start:t, dur:0.12, gain:0.055, dest:master });
+      noise(audioCtx, { start:t + 0.04, dur:0.09, gain:0.045, dest:master, filterType:'bandpass', freq:1800, q:1.6 });
+    } else if (name === 'hit') {
+      noise(audioCtx, { start:t, dur:0.075, gain:0.08, dest:master, filterType:'bandpass', freq:2100, q:1.2 });
+      tone(audioCtx, { type:'sawtooth', freq:520, endFreq:180, start:t, dur:0.07, gain:0.035, dest:master });
+    } else if (name === 'destroy') {
+      noise(audioCtx, { start:t, dur:0.28, gain:0.2, dest:master, filterType:'lowpass', freq:1300, q:0.6 });
+      tone(audioCtx, { type:'sine', freq:95, endFreq:34, start:t, dur:0.32, gain:0.16, dest:master });
+    } else if (name === 'radar') {
+      tone(audioCtx, { type:'sine', freq:920, endFreq:920, start:t, dur:0.055, gain:0.05, dest:master });
+      tone(audioCtx, { type:'sine', freq:1380, endFreq:1380, start:t + 0.075, dur:0.045, gain:0.035, dest:master });
+    } else if (name === 'baseImpact') {
+      noise(audioCtx, { start:t, dur:0.38, gain:0.24, dest:master, filterType:'lowpass', freq:700, q:0.5 });
+      tone(audioCtx, { type:'sine', freq:70, endFreq:24, start:t, dur:0.44, gain:0.2, dest:master });
+    }
+  };
+
+  return {
+    isMuted: () => muted,
+    setMuted: (value) => {
+      muted = value;
+      localStorage.setItem(storageKey, String(muted));
+      if (muted && ctx) ctx.suspend();
+      else getCtx();
+    },
+    play,
+  };
+})();
 
 /* ─── DRONE DRAW ROUTINES — accurate military silhouettes ────────────────── */
 function drawDrone(ctx, d) {
@@ -562,6 +751,8 @@ function App() {
   const [missIndicators, setMissIndicators] = useState([]); // {id, x, y}
   const [finalStats, setFinalStats] = useState({ score:0, wave:1, kills:0 });
   const [waveFlash, setWaveFlash] = useState(null);
+  const [upgradeOptions, setUpgradeOptions] = useState([]);
+  const [muted, setMuted] = useState(() => AudioFX.isMuted());
   const [dims, setDims] = useState({ w: window.innerWidth, h: window.innerHeight });
 
   const world = useRef({
@@ -572,14 +763,22 @@ function App() {
     weaponRuntime:{}, lastShotAt:{},
     score:0, kills:0, wave:1, integrity:100,
     waveDroneBudget:4, spawnTimer:0,
+    weather:WEATHER_PRESETS[0], upgrades:{radar:0,thermal:0,ammo:0,reload:0,harden:0,fcs:0,ew:0,ident:0}, spottedBase:0, ewPressure:0, relayPressure:0,
     radarSweepAngle:0,
     siteX:0, siteY:0, shake:0,
     missCounter:0,
   }).current;
 
+  const toggleMute = (e) => {
+    e?.stopPropagation();
+    const nextMuted = !muted;
+    AudioFX.setMuted(nextMuted);
+    setMuted(nextMuted);
+  };
+
   const initWeapons = () => {
     WEAPON_ORDER.forEach(id => {
-      world.weaponRuntime[id] = { ammo:WEAPONS[id].magazine, reloading:false, reloadStart:0 };
+      world.weaponRuntime[id] = { ammo:WEAPONS[id].magazine, reserve:Math.ceil((WEAPONS[id].reserve||WEAPONS[id].magazine*4)*(1+world.upgrades.ammo)), reloading:false, reloadStart:0, heat:0, overheated:false };
       world.lastShotAt[id] = 0;
     });
   };
@@ -636,8 +835,9 @@ function App() {
 
   const forceReload = (id) => {
     const rt = world.weaponRuntime[id];
-    if (!rt||rt.reloading||rt.ammo===WEAPONS[id].magazine) return;
+    if (!rt||rt.reloading||rt.ammo===WEAPONS[id].magazine||rt.reserve<=0) return;
     rt.reloading=true; rt.reloadStart=performance.now();
+    AudioFX.play('reload');
   };
 
   /* Compute effective spread — extra spread for MG weapons vs fast/evasive targets */
@@ -651,16 +851,69 @@ function App() {
     return sp;
   };
 
+  const detectionLayers = (d) => {
+    const dd = dist(d.x, d.y, world.siteX, world.siteY);
+    const w = world.weather;
+    const radarEW = Math.max(0.42, 1 - world.ewPressure*0.18);
+    return {
+      radar: clamp(((520 * (d.type.radarSig||0.4) + 90 + world.upgrades.radar*520) * (w.radar||1) * radarEW - dd) / 190),
+      visual: clamp(((360 * (d.type.visualSig||0.5) + 60) * (w.visual||1) - dd) / 150),
+      thermal: clamp(((410 * (d.type.thermalSig||0.5) + 70 + world.upgrades.thermal*420) * (w.thermal||1) - dd) / 160),
+      acoustic: clamp(((260 * (d.type.acousticSig||0.4) + 55) * (w.acoustic||1) - dd) / 130),
+    };
+  };
+
+  const applyDamage = (d, amount, kind='kinetic') => {
+    if (!d.components) d.components = { wing:1, engine:1, sensor:1, payload:1 };
+    const roll = Math.random();
+    if (kind==='laser') d.components.sensor = Math.max(0, d.components.sensor - amount/45);
+    else if (kind==='ew') d.jammed = Math.max(d.jammed||0, amount/30);
+    else if (roll < 0.30) d.components.wing = Math.max(0, d.components.wing - amount/90);
+    else if (roll < 0.55) d.components.engine = Math.max(0, d.components.engine - amount/100);
+    else if (roll < 0.72) d.components.sensor = Math.max(0, d.components.sensor - amount/120);
+    else d.components.payload = Math.max(0, d.components.payload - amount/130);
+    if (d.components.payload <= 0.18 && Math.random()<0.35) amount *= 1.9;
+    d.hp -= amount;
+    if (d.components.engine < 0.35) d.speed *= 0.985;
+    if (d.components.wing < 0.35) d.evadeOffset += (Math.random()-0.5)*0.35;
+  };
+
+  const applyConeEffect = (wdef, amount, kind) => {
+    const ang = Math.atan2(world.mouse.y - world.siteY, world.mouse.x - world.siteX);
+    let affected = 0;
+    world.drones.forEach(d => {
+      const dd = dist(d.x,d.y,world.siteX,world.siteY);
+      const da = Math.atan2(d.y-world.siteY,d.x-world.siteX);
+      if (dd < wdef.maxRange && Math.abs(angDiff(da,ang)) < (wdef.spread + 0.14)) {
+        const strength = (1 - dd/wdef.maxRange) * (1 + world.upgrades.ew);
+        if (kind==='ew' && (d.type.role==='fpv'||d.type.buffsFpv||d.type.role==='relay')) {
+          applyDamage(d, amount*strength*(1-(d.type.ewResist||0.5)), 'ew');
+          d.speed *= 0.992;
+          affected++;
+        } else if (kind==='laser') {
+          applyDamage(d, amount*strength*(d.type.spotsBase?1.7:1), 'laser');
+          affected++;
+        }
+      }
+    });
+    if (affected>0) spawnSpark(world.siteX+Math.cos(ang)*70, world.siteY+Math.sin(ang)*70);
+  };
+
   const tryFire = () => {
     const id = world.activeWeaponId;
     const wdef = WEAPONS[id];
     const rt = world.weaponRuntime[id];
-    if (!rt||rt.reloading) return;
+    if (!rt||rt.reloading||rt.overheated) return;
     const now = performance.now();
     if (now - world.lastShotAt[id] < wdef.fireRate) return;
     if (rt.ammo <= 0) { forceReload(id); return; }
     world.lastShotAt[id] = now;
     rt.ammo -= 1;
+    rt.heat = Math.min(1.35, rt.heat + (wdef.heatPerShot||0));
+    if (rt.heat >= (wdef.overheatAt||1)) rt.overheated = true;
+    AudioFX.play('fire', { weapon: wdef });
+    if (wdef.class==='ew') { applyConeEffect(wdef, 42, 'ew'); if (rt.ammo <= 0) forceReload(id); return; }
+    if (wdef.class==='laser') { applyConeEffect(wdef, 18, 'laser'); if (rt.ammo <= 0) forceReload(id); return; }
     if (rt.ammo <= 0) forceReload(id);
 
     const ang = Math.atan2(world.mouse.y - world.siteY, world.mouse.x - world.siteX);
@@ -699,7 +952,7 @@ function App() {
       vy: Math.sin(spreadAng)*wdef.projSpeed,
       life: wdef.maxRange/wdef.projSpeed,
       weapon: wdef, target: missileTarget, trail:[],
-      spread: sp, // store for debug
+      spread: sp, proximity:wdef.proximity||0, class:wdef.class, born:now, // store for debug
     });
   };
 
@@ -717,8 +970,23 @@ function App() {
     return () => cancelAnimationFrame(raf);
   }, [gameState, dims]);
 
+  const pickDroneType = () => {
+    const wave = world.wave;
+    const pool = DRONE_TYPES.filter(t => {
+      if (t.role==='jet') return wave >= 5;
+      if (t.role==='ew'||t.role==='relay') return wave >= 3;
+      if (t.role==='fpv') return wave >= 2;
+      return true;
+    });
+    if (wave%5===0) return pool.find(t=>t.role==='ew') || pool[0];
+    if (world.relayPressure>0.5 && Math.random()<0.45) return pool.find(t=>t.role==='fpv') || pool[0];
+    if (wave%4===0 && Math.random()<0.45) return pool.find(t=>t.decoy) || pool[0];
+    if (wave%3===0 && Math.random()<0.35) return pool.find(t=>t.role==='swarm') || pool[0];
+    return pool[Math.floor(Math.random()*pool.length)];
+  };
+
   const spawnContact = () => {
-    const t = DRONE_TYPES[Math.floor(Math.random()*DRONE_TYPES.length)];
+    const t = pickDroneType();
     const W=dims.w, H=dims.h;
     const edge = Math.floor(Math.random()*4);
     const margin = 70;
@@ -737,6 +1005,7 @@ function App() {
     world.contacts.push(contact);
     pushPopup({ eta:true, model:t.model, etaText:`${Math.max(1,Math.round(eta))} с`, dir, contactPos:{ex,ey} });
     triggerMiniRadar(contact);
+    AudioFX.play('radar');
   };
 
   const spawnDroneFromContact = (c) => {
@@ -746,7 +1015,7 @@ function App() {
       hp:c.type.hp, maxHp:c.type.hp,
       angle, wobble:Math.random()*1000,
       evadeTimer:Math.random()*1.5, evadeOffset:0,
-      speed:c.effSpeed, detected:false,
+      speed:c.effSpeed, detected:false, idLevel:0, sensors:{}, jammed:0, dropped:false, components:{ wing:1, engine:1, sensor:1, payload:1 },
     });
   };
 
@@ -765,9 +1034,9 @@ function App() {
     }
     if (world.waveDroneBudget <= 0 && world.drones.length===0 && world.contacts.length===0) {
       world.wave += 1;
-      world.waveDroneBudget = 3 + Math.floor(world.wave*1.7);
-      setWaveFlash(world.wave);
-      setTimeout(() => setWaveFlash(null), 1800);
+      setUpgradeOptions(chooseUpgradeOptions(world.wave));
+      setGameState('upgrade');
+      return;
     }
 
     for (let i=world.contacts.length-1; i>=0; i--) {
@@ -778,6 +1047,8 @@ function App() {
       }
     }
 
+    world.ewPressure = world.drones.filter(d=>d.type.jamsRadar).length;
+    world.relayPressure = world.drones.filter(d=>d.type.buffsFpv).length;
     const detectBonus = curWdef ? curWdef.detectBonus : 0;
 
     for (let i=world.drones.length-1; i>=0; i--) {
@@ -799,16 +1070,27 @@ function App() {
       d.y += Math.sin(d.angle)*d.speed*dt + Math.sin(d.wobble*1.8)*3*dt;
 
       const ddist = dist(d.x, d.y, world.siteX, world.siteY);
-      const detectRange = 460*d.type.radarSig + 80 + detectBonus;
-      if (!d.detected && ddist < detectRange) {
-        d.detected = true;
-        pushPopup({ model:d.type.model, range:Math.round(ddist), dir:compassFromAngle(Math.atan2(d.y-world.siteY, d.x-world.siteX)) });
+      if (d.type.terminalSprint && ddist < 220) d.speed = Math.max(d.speed, d.type.speed*1.24*(1+world.relayPressure*0.08));
+      if (d.jammed > 0) { d.jammed = Math.max(0, d.jammed-dt*0.35); d.speed *= (1-dt*0.45); }
+      if (d.type.spotsBase && ddist < 430 && d.components.sensor > 0.25) world.spottedBase = Math.min(1, world.spottedBase + dt*0.045);
+      if (d.type.bomber && !d.dropped && ddist < 145) { d.dropped=true; world.integrity -= 10; spawnExplosion(d.x,d.y,d.type.color,d.type,true); }
+      const layers = detectionLayers(d);
+      layers.radar = clamp(layers.radar + detectBonus/650);
+      d.sensors = layers;
+      const detectScore = scoreForDetection(layers);
+      const priorLevel = d.idLevel || 0;
+      if (detectScore > 0.05) d.detected = true;
+      if (detectScore > 0.28) d.idLevel = Math.max(d.idLevel||0, 1);
+      if (detectScore > (0.66 - world.upgrades.ident*0.35)) d.idLevel = 2;
+      if (d.detected && priorLevel < d.idLevel) {
+        pushPopup({ model:knownName(d), range:Math.round(ddist), dir:compassFromAngle(Math.atan2(d.y-world.siteY, d.x-world.siteX)), sensors:sensorSummary(d) });
       }
 
       if (ddist < 30) {
-        const dmg = d.type.threat==='critical' ? 30 : d.type.threat==='high' ? 18 : 10;
+        const dmg = (d.type.payload||10) * (1 + world.spottedBase*0.35);
         world.integrity -= dmg;
         world.shake = 16;
+        AudioFX.play('baseImpact');
         spawnExplosion(d.x, d.y, d.type.color, d.type, true);
         world.drones.splice(i,1);
         continue;
@@ -836,21 +1118,40 @@ function App() {
       for (let j=world.drones.length-1; j>=0; j--) {
         const d = world.drones[j];
         if (dist(p.x,p.y,d.x,d.y) < d.type.w/2 + 7) {
-          d.hp -= p.weapon.damage;
+          applyDamage(d, p.weapon.damage, p.class);
           spawnSpark(p.x, p.y);
+          AudioFX.play('hit');
           if (p.weapon.splash > 0) {
             world.drones.forEach(d2 => {
-              if (d2!==d && dist(d.x,d.y,d2.x,d2.y)<p.weapon.splash) d2.hp -= p.weapon.damage*0.5;
+              if (d2!==d && dist(d.x,d.y,d2.x,d2.y)<p.weapon.splash) applyDamage(d2, p.weapon.damage*0.5, p.class);
             });
           }
           if (d.hp <= 0) {
             world.score += scoreFor(d.type);
             world.kills += 1;
+            AudioFX.play('destroy');
             spawnExplosion(d.x,d.y,d.type.color,d.type,false);
             world.drones.splice(j,1);
           }
           hit = true; break;
         }
+      }
+
+      if (!hit && p.proximity > 0) {
+        let nearest = null, nd = Infinity;
+        world.drones.forEach(d => { const dd=dist(p.x,p.y,d.x,d.y); if (dd < nd) { nd=dd; nearest=d; } });
+        if (nearest && nd < p.proximity) {
+          spawnExplosion(p.x,p.y,p.weapon.projColor,nearest.type,false);
+          world.drones.slice().forEach(d => {
+            const fd = dist(p.x,p.y,d.x,d.y);
+            if (fd < (p.weapon.splash||p.proximity)) applyDamage(d, p.weapon.damage*(1-fd/(p.weapon.splash||p.proximity))*0.9, 'flak');
+          });
+          hit = true;
+        }
+      }
+
+      for (let k=world.drones.length-1;k>=0;k--) {
+        if (world.drones[k].hp <= 0) { world.score += scoreFor(world.drones[k].type); world.kills += 1; AudioFX.play('destroy'); spawnExplosion(world.drones[k].x,world.drones[k].y,world.drones[k].type.color,world.drones[k].type,false); world.drones.splice(k,1); }
       }
 
       if (!hit && p.life <= 0 && p.spread > 0.02) {
@@ -878,7 +1179,16 @@ function App() {
 
     WEAPON_ORDER.forEach(id => {
       const rt = world.weaponRuntime[id];
-      if (rt.reloading && now-rt.reloadStart >= WEAPONS[id].reload) { rt.reloading=false; rt.ammo=WEAPONS[id].magazine; }
+      const w = WEAPONS[id];
+      if (!rt) return;
+      rt.heat = Math.max(0, rt.heat - (w.coolRate||0.25)*dt);
+      if (rt.overheated && rt.heat < 0.38) rt.overheated=false;
+      const reloadTime = w.reload * Math.max(0.55, 1-world.upgrades.reload);
+      if (rt.reloading && now-rt.reloadStart >= reloadTime) {
+        const need = w.magazine - rt.ammo;
+        const take = Math.min(need, rt.reserve);
+        rt.reloading=false; rt.ammo += take; rt.reserve -= take;
+      }
     });
 
     world.radarSweepAngle = (world.radarSweepAngle + dt*1.6) % (Math.PI*2);
@@ -905,7 +1215,7 @@ function App() {
       if (best) lockInfo = { model:best.type.model, range:Math.round(dist(best.x,best.y,world.siteX,world.siteY)), locked:bestDiff<0.08, strength:Math.max(0,Math.min(1,1-bestDiff/0.32)) };
     }
 
-    setHud({ score:Math.round(world.score), wave:world.wave, integrity:Math.max(0,Math.round(world.integrity)), ammoFrac:rt.ammo/wdef.magazine, reloading:rt.reloading, ammo:rt.ammo, mag:wdef.magazine, lockInfo });
+    setHud({ score:Math.round(world.score), wave:world.wave, integrity:Math.max(0,Math.round(world.integrity)), ammoFrac:rt.ammo/wdef.magazine, reloading:rt.reloading, ammo:rt.ammo, mag:wdef.magazine, reserve:rt.reserve, heat:rt.heat, overheated:rt.overheated, weather:world.weather.name, ew:world.ewPressure, relay:world.relayPressure, spotted:world.spottedBase, lockInfo });
   };
 
   const spawnExplosion = (x, y, color, droneType, impact) => {
@@ -1211,11 +1521,23 @@ function App() {
   const startGame = () => {
     world.drones=[]; world.contacts=[]; world.projectiles=[]; world.particles=[];
     world.score=0; world.kills=0; world.wave=1; world.integrity=100;
+    world.upgrades={radar:0,thermal:0,ammo:0,reload:0,harden:0,fcs:0,ew:0,ident:0}; world.spottedBase=0; world.weather=weatherForWave(1);
     world.waveDroneBudget=4; world.spawnTimer=0.5;
     world.activeWeaponId=activeWeaponId;
     initWeapons();
     setPopups([]);
     setMissIndicators([]);
+    setGameState('playing');
+  };
+
+  const selectUpgrade = (upgrade) => {
+    upgrade.apply(world);
+    world.weather = weatherForWave(world.wave);
+    world.waveDroneBudget = 3 + Math.floor(world.wave*1.7) + Math.floor(world.spottedBase*2);
+    world.spawnTimer = 0.8;
+    WEAPON_ORDER.forEach(id => { const rt=world.weaponRuntime[id]; if (rt) rt.reserve += Math.ceil((WEAPONS[id].reserve||20)*0.16*(1+world.upgrades.ammo)); });
+    setWaveFlash(world.wave);
+    setTimeout(() => setWaveFlash(null), 1800);
     setGameState('playing');
   };
 
@@ -1234,9 +1556,12 @@ function App() {
               <div className="hud-block"><div className="hud-label">Очки</div><div className="hud-value">{hud.score}</div></div>
               <div className="hud-block"><div className="hud-label">Волна</div><div className="hud-value">{hud.wave}</div></div>
             </div>
-            <div className="hud-block">
-              <div className="hud-label">Целостность объекта</div>
-              <div className={"hud-value "+(hud.integrity<30?'crit':hud.integrity<60?'warn':'')}>{hud.integrity}%</div>
+            <div className="stack">
+              <button className="mute-btn" onMouseDown={(e)=>e.stopPropagation()} onClick={toggleMute}>{muted ? 'Звук выкл' : 'Звук вкл'}</button>
+              <div className="hud-block">
+                <div className="hud-label">Целостность объекта</div>
+                <div className={"hud-value "+(hud.integrity<30?'crit':hud.integrity<60?'warn':'')}>{hud.integrity}%</div>
+              </div>
             </div>
           </div>
 
@@ -1247,11 +1572,15 @@ function App() {
             <div className="hud-block">
               <div className="hud-label">{activeWeapon.nameRu}</div>
               <div className="hud-value" style={{fontSize:14}}>
-                {hud.reloading ? 'ПЕРЕЗАРЯДКА...' : `${hud.ammo} / ${hud.mag}`}
+                {hud.overheated ? 'ПЕРЕГРЕВ' : hud.reloading ? 'ПЕРЕЗАРЯДКА...' : `${hud.ammo} / ${hud.mag} · РЕЗ ${hud.reserve ?? 0}`}
               </div>
               <div className="weapon-ammo-bar" style={{width:130,marginTop:4}}>
                 <div className="weapon-ammo-fill" style={{width:(hud.reloading?100:hud.ammoFrac*100)+'%',background:hud.reloading?'var(--amber)':'var(--phosphor)'}} />
               </div>
+              <div className="weapon-ammo-bar" style={{width:130,marginTop:5,background:'rgba(255,77,77,0.13)'}}>
+                <div className="weapon-ammo-fill" style={{width:((hud.heat||0)*100)+'%',background:hud.overheated?'var(--red)':'var(--amber)'}} />
+              </div>
+              <div className="hud-label" style={{marginTop:4}}>WX {hud.weather||'—'} · EW {hud.ew||0} · ID {(Math.round((hud.spotted||0)*100))}%</div>
             </div>
           </div>
 
@@ -1282,9 +1611,10 @@ function App() {
                   <div className="weapon-name-ru">{w.nameRu}</div>
                   <div className="weapon-stat-row"><span>{w.desc}</span></div>
                   <div className="weapon-stat-row"><span>RNG {w.maxRange}м</span><span>DMG {w.damage}</span></div>
-                  <div className="weapon-trait">{w.trait}</div>
+                  <div className="weapon-stat-row"><span>RES {rt?rt.reserve:0}</span><span>HEAT {rt?Math.round(rt.heat*100):0}%</span></div>
+                  <div className="weapon-trait">{rt&&rt.overheated?'ПЕРЕГРЕВ':w.trait}</div>
                   <div className="weapon-ammo-bar">
-                    <div className="weapon-ammo-fill" style={{width:(rt?rt.ammo/w.magazine*100:100)+'%',background:rt&&rt.reloading?'var(--amber)':'var(--phosphor)'}} />
+                    <div className="weapon-ammo-fill" style={{width:(rt?rt.ammo/w.magazine*100:100)+'%',background:rt&&rt.reloading?'var(--amber)':rt&&rt.overheated?'var(--red)':'var(--phosphor)'}} />
                   </div>
                 </div>
               );
@@ -1292,7 +1622,7 @@ function App() {
           </div>
 
           <div className="hint-bar">
-            {activeWeapon.auto?'Удерживайте ЛКМ — авто-огонь':'ЛКМ — выстрел'} · 1–5 оружие · G радар · R перезарядка
+            {activeWeapon.auto?'Удерживайте ЛКМ — авто-огонь':'ЛКМ — выстрел'} · 1–9/0 оружие · G радар · R перезарядка
           </div>
 
           {/* Miss indicators */}
@@ -1322,6 +1652,7 @@ function App() {
                     <React.Fragment>
                       <div className="row"><span>Дистанция:</span><span>{p.range} м</span></div>
                       <div className="row"><span>Направление:</span><span>{p.dir}</span></div>
+                      {p.sensors && <div className="row"><span>Сенсоры:</span><span>{p.sensors}</span></div>}
                     </React.Fragment>
                   )}
                 </div>
@@ -1342,19 +1673,40 @@ function App() {
         <div className="overlay-screen">
           <h1>ПВО // AIR DEFENSE</h1>
           <div className="sub">
-            Радар засекает БПЛА ещё на подлёте — следите за временем прибытия. Выбирайте комплекс (1–5), наводитесь мышью, открывайте огонь.<br/>
+            Радар засекает БПЛА ещё на подлёте — следите за временем прибытия. Выбирайте комплекс (1–9/0), наводитесь мышью, открывайте огонь.<br/>
             <span style={{color:'var(--amber)'}}>Пулемёты и Шилка теряют точность по скоростным и маневренным целям — FPV и Ланцет сложно поразить автоматическим огнём.</span>
           </div>
           <div className="codex-grid">
             {DRONE_TYPES.map(t => (
               <div className="codex-item" key={t.model}>
                 <div className="nm">{t.model}</div>
-                <div className="kn">{t.kind}</div>
+                <div className="kn">{t.kind} · {t.role}</div>
                 <div className="acc">{t.evasive ? '⚠ Маневренный · трудно поразить пулемётом' : `${t.threat === 'critical' ? '⚡ Угроза: критическая' : t.threat === 'high' ? '▲ Угроза: высокая' : '● Угроза: средняя'}`}</div>
               </div>
             ))}
           </div>
+          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
           <button className="start-btn" onClick={startGame}>Начать оборону</button>
+        </div>
+      )}
+
+
+      {gameState==='upgrade' && (
+        <div className="overlay-screen">
+          <h1>КОМАНДНЫЙ ПУНКТ</h1>
+          <div className="sub">
+            Волна {world.wave-1} отражена. Погода следующей волны: <span style={{color:'var(--amber)'}}>{weatherForWave(world.wave).name}</span>.<br/>
+            Выберите одно улучшение перед следующей атакой. Разведка противника: {Math.round(world.spottedBase*100)}%.
+          </div>
+          <div className="upgrade-row">
+            {upgradeOptions.map(u => (
+              <button className="upgrade-card" key={u.id} onClick={() => selectUpgrade(u)}>
+                <div className="u-title">{u.label}</div>
+                <div className="u-desc">{u.desc}</div>
+              </button>
+            ))}
+          </div>
+          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
         </div>
       )}
 
@@ -1367,6 +1719,7 @@ function App() {
             <div className="item"><div className="v">{finalStats.wave}</div><div className="l">Волна</div></div>
             <div className="item"><div className="v">{finalStats.kills}</div><div className="l">Уничтожено</div></div>
           </div>
+          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
           <button className="start-btn" onClick={startGame}>Заново</button>
         </div>
       )}
