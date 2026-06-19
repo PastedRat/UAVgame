@@ -63,6 +63,9 @@
   .overlay-screen .sub { color: var(--phosphor-dim); font-size: 13px; letter-spacing: 0.08em; max-width: 560px; line-height: 1.7; }
   .start-btn { margin-top: 14px; background: transparent; border: 1px solid var(--phosphor); color: var(--phosphor-bright); padding: 12px 34px; font-family: var(--mono); font-size: 14px; letter-spacing: 0.12em; cursor: pointer; text-transform: uppercase; transition: all 0.15s; }
   .start-btn:hover { background: rgba(95,255,143,0.12); box-shadow: 0 0 20px rgba(95,255,143,0.3); }
+  .mute-btn { background: transparent; border: 1px solid var(--phosphor-dim); color: var(--phosphor-bright); padding: 8px 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; }
+  .mute-btn:hover { border-color: var(--phosphor); background: rgba(95,255,143,0.10); }
+  .overlay-screen .mute-btn { margin-top: -4px; }
   .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
   .stat-grid .item .v { font-size: 26px; color: var(--phosphor-bright); }
   .stat-grid .item .l { font-size: 10px; color: var(--phosphor-dim); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -213,6 +216,105 @@ function dist(x1,y1,x2,y2){ return Math.hypot(x1-x2, y1-y2); }
 function angDiff(a,b){ let d=a-b; while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2; return d; }
 function lerpAngle(a,b,t){ return a+angDiff(b,a)*Math.min(t,1); }
 function compassFromAngle(rad){ const deg=(rad*180/Math.PI+360)%360; const dirs=['В','ЮВ','Ю','ЮЗ','З','СЗ','С','СВ']; return dirs[Math.round(deg/45)%8]; }
+
+
+const AudioFX = (() => {
+  const storageKey = 'uavgame.muted';
+  let ctx = null;
+  let noiseBuffer = null;
+  let muted = localStorage.getItem(storageKey) === 'true';
+
+  const getCtx = () => {
+    if (muted) return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!ctx) ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  };
+
+  const makeNoise = (audioCtx) => {
+    if (noiseBuffer) return noiseBuffer;
+    noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    return noiseBuffer;
+  };
+
+  const env = (audioCtx, start, peak, sustain, end, attack = 0.006) => {
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak), start + attack);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, sustain), end * 0.72 + start * 0.28);
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    return gain;
+  };
+
+  const tone = (audioCtx, { type = 'sine', freq = 440, endFreq = freq, start, dur, gain = 0.1, dest }) => {
+    const osc = audioCtx.createOscillator();
+    const g = env(audioCtx, start, gain, gain * 0.35, start + dur);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, endFreq), start + dur);
+    osc.connect(g).connect(dest || audioCtx.destination);
+    osc.start(start);
+    osc.stop(start + dur + 0.02);
+  };
+
+  const noise = (audioCtx, { start, dur, gain = 0.08, dest, filterType = 'bandpass', freq = 900, q = 0.8 }) => {
+    const src = audioCtx.createBufferSource();
+    const filter = audioCtx.createBiquadFilter();
+    const g = env(audioCtx, start, gain, gain * 0.18, start + dur, 0.002);
+    src.buffer = makeNoise(audioCtx);
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(freq, start);
+    filter.Q.value = q;
+    src.connect(filter).connect(g).connect(dest || audioCtx.destination);
+    src.start(start);
+    src.stop(start + dur + 0.02);
+  };
+
+  const play = (name, variant = {}) => {
+    const audioCtx = getCtx();
+    if (!audioCtx) return;
+    const t = audioCtx.currentTime;
+    const master = audioCtx.createGain();
+    master.gain.value = 0.55;
+    master.connect(audioCtx.destination);
+
+    if (name === 'fire') {
+      const isMissile = variant.weapon && variant.weapon.tracking > 0;
+      noise(audioCtx, { start:t, dur:isMissile ? 0.16 : 0.055, gain:isMissile ? 0.18 : 0.11, dest:master, filterType:'highpass', freq:isMissile ? 260 : 1200, q:0.4 });
+      tone(audioCtx, { type:'square', freq:isMissile ? 110 : 190, endFreq:isMissile ? 58 : 90, start:t, dur:isMissile ? 0.18 : 0.045, gain:isMissile ? 0.12 : 0.06, dest:master });
+    } else if (name === 'reload') {
+      tone(audioCtx, { type:'triangle', freq:360, endFreq:160, start:t, dur:0.12, gain:0.055, dest:master });
+      noise(audioCtx, { start:t + 0.04, dur:0.09, gain:0.045, dest:master, filterType:'bandpass', freq:1800, q:1.6 });
+    } else if (name === 'hit') {
+      noise(audioCtx, { start:t, dur:0.075, gain:0.08, dest:master, filterType:'bandpass', freq:2100, q:1.2 });
+      tone(audioCtx, { type:'sawtooth', freq:520, endFreq:180, start:t, dur:0.07, gain:0.035, dest:master });
+    } else if (name === 'destroy') {
+      noise(audioCtx, { start:t, dur:0.28, gain:0.2, dest:master, filterType:'lowpass', freq:1300, q:0.6 });
+      tone(audioCtx, { type:'sine', freq:95, endFreq:34, start:t, dur:0.32, gain:0.16, dest:master });
+    } else if (name === 'radar') {
+      tone(audioCtx, { type:'sine', freq:920, endFreq:920, start:t, dur:0.055, gain:0.05, dest:master });
+      tone(audioCtx, { type:'sine', freq:1380, endFreq:1380, start:t + 0.075, dur:0.045, gain:0.035, dest:master });
+    } else if (name === 'baseImpact') {
+      noise(audioCtx, { start:t, dur:0.38, gain:0.24, dest:master, filterType:'lowpass', freq:700, q:0.5 });
+      tone(audioCtx, { type:'sine', freq:70, endFreq:24, start:t, dur:0.44, gain:0.2, dest:master });
+    }
+  };
+
+  return {
+    isMuted: () => muted,
+    setMuted: (value) => {
+      muted = value;
+      localStorage.setItem(storageKey, String(muted));
+      if (muted && ctx) ctx.suspend();
+      else getCtx();
+    },
+    play,
+  };
+})();
 
 /* ─── DRONE DRAW ROUTINES — accurate military silhouettes ────────────────── */
 function drawDrone(ctx, d) {
@@ -562,6 +664,7 @@ function App() {
   const [missIndicators, setMissIndicators] = useState([]); // {id, x, y}
   const [finalStats, setFinalStats] = useState({ score:0, wave:1, kills:0 });
   const [waveFlash, setWaveFlash] = useState(null);
+  const [muted, setMuted] = useState(() => AudioFX.isMuted());
   const [dims, setDims] = useState({ w: window.innerWidth, h: window.innerHeight });
 
   const world = useRef({
@@ -576,6 +679,13 @@ function App() {
     siteX:0, siteY:0, shake:0,
     missCounter:0,
   }).current;
+
+  const toggleMute = (e) => {
+    e?.stopPropagation();
+    const nextMuted = !muted;
+    AudioFX.setMuted(nextMuted);
+    setMuted(nextMuted);
+  };
 
   const initWeapons = () => {
     WEAPON_ORDER.forEach(id => {
@@ -638,6 +748,7 @@ function App() {
     const rt = world.weaponRuntime[id];
     if (!rt||rt.reloading||rt.ammo===WEAPONS[id].magazine) return;
     rt.reloading=true; rt.reloadStart=performance.now();
+    AudioFX.play('reload');
   };
 
   /* Compute effective spread — extra spread for MG weapons vs fast/evasive targets */
@@ -661,6 +772,7 @@ function App() {
     if (rt.ammo <= 0) { forceReload(id); return; }
     world.lastShotAt[id] = now;
     rt.ammo -= 1;
+    AudioFX.play('fire', { weapon: wdef });
     if (rt.ammo <= 0) forceReload(id);
 
     const ang = Math.atan2(world.mouse.y - world.siteY, world.mouse.x - world.siteX);
@@ -737,6 +849,7 @@ function App() {
     world.contacts.push(contact);
     pushPopup({ eta:true, model:t.model, etaText:`${Math.max(1,Math.round(eta))} с`, dir, contactPos:{ex,ey} });
     triggerMiniRadar(contact);
+    AudioFX.play('radar');
   };
 
   const spawnDroneFromContact = (c) => {
@@ -809,6 +922,7 @@ function App() {
         const dmg = d.type.threat==='critical' ? 30 : d.type.threat==='high' ? 18 : 10;
         world.integrity -= dmg;
         world.shake = 16;
+        AudioFX.play('baseImpact');
         spawnExplosion(d.x, d.y, d.type.color, d.type, true);
         world.drones.splice(i,1);
         continue;
@@ -838,6 +952,7 @@ function App() {
         if (dist(p.x,p.y,d.x,d.y) < d.type.w/2 + 7) {
           d.hp -= p.weapon.damage;
           spawnSpark(p.x, p.y);
+          AudioFX.play('hit');
           if (p.weapon.splash > 0) {
             world.drones.forEach(d2 => {
               if (d2!==d && dist(d.x,d.y,d2.x,d2.y)<p.weapon.splash) d2.hp -= p.weapon.damage*0.5;
@@ -846,6 +961,7 @@ function App() {
           if (d.hp <= 0) {
             world.score += scoreFor(d.type);
             world.kills += 1;
+            AudioFX.play('destroy');
             spawnExplosion(d.x,d.y,d.type.color,d.type,false);
             world.drones.splice(j,1);
           }
@@ -1234,9 +1350,12 @@ function App() {
               <div className="hud-block"><div className="hud-label">Очки</div><div className="hud-value">{hud.score}</div></div>
               <div className="hud-block"><div className="hud-label">Волна</div><div className="hud-value">{hud.wave}</div></div>
             </div>
-            <div className="hud-block">
-              <div className="hud-label">Целостность объекта</div>
-              <div className={"hud-value "+(hud.integrity<30?'crit':hud.integrity<60?'warn':'')}>{hud.integrity}%</div>
+            <div className="stack">
+              <button className="mute-btn" onMouseDown={(e)=>e.stopPropagation()} onClick={toggleMute}>{muted ? 'Звук выкл' : 'Звук вкл'}</button>
+              <div className="hud-block">
+                <div className="hud-label">Целостность объекта</div>
+                <div className={"hud-value "+(hud.integrity<30?'crit':hud.integrity<60?'warn':'')}>{hud.integrity}%</div>
+              </div>
             </div>
           </div>
 
@@ -1354,6 +1473,7 @@ function App() {
               </div>
             ))}
           </div>
+          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
           <button className="start-btn" onClick={startGame}>Начать оборону</button>
         </div>
       )}
@@ -1367,6 +1487,7 @@ function App() {
             <div className="item"><div className="v">{finalStats.wave}</div><div className="l">Волна</div></div>
             <div className="item"><div className="v">{finalStats.kills}</div><div className="l">Уничтожено</div></div>
           </div>
+          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
           <button className="start-btn" onClick={startGame}>Заново</button>
         </div>
       )}
