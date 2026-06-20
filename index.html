@@ -77,11 +77,6 @@
   .codex-item .nm { color: var(--phosphor-bright); font-size: 12px; font-weight: 700; }
   .codex-item .kn { color: var(--amber); font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
   .codex-item .acc { font-size: 9px; color: var(--phosphor-dim); margin-top: 2px; }
-  .upgrade-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 760px; }
-  .upgrade-card { width: 220px; min-height: 104px; background: rgba(95,255,143,0.05); border: 1px solid var(--phosphor-dim); color: var(--phosphor-bright); padding: 12px; font-family: var(--mono); cursor: pointer; text-align: left; }
-  .upgrade-card:hover { border-color: var(--phosphor); box-shadow: 0 0 18px rgba(95,255,143,0.20); }
-  .upgrade-card .u-title { color: var(--amber); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-  .upgrade-card .u-desc { color: var(--phosphor-dim); font-size: 10px; line-height: 1.5; }
   .lock-window { position: absolute; left: 16px; bottom: 16px; z-index: 22; width: 200px; height: 150px; background: rgba(6, 12, 8, 0.92); border: 1px solid var(--phosphor-dim); box-shadow: 0 0 18px rgba(95,255,143,0.1); overflow: hidden; }
   .lock-window .lw-title { font-size: 9px; letter-spacing: 0.1em; color: var(--phosphor-dim); padding: 5px 8px; border-bottom: 1px solid rgba(95,255,143,0.15); text-transform: uppercase; }
   .lock-window .lw-screen { position: relative; width: 100%; height: calc(100% - 22px); }
@@ -115,7 +110,7 @@ const WEAPONS = {
     fireRate:1400, projSpeed:680, maxRange:570, damage:100, splash:0,
     magazine:1, reserve:8, reload:3200, tracking:0.20, spread:0,
     heatPerShot:0.10, coolRate:0.35, overheatAt:1.0,
-    detectBonus:220, auto:false, lockWindow:true,
+    detectBonus:220, auto:false, lockWindow:true, soundProfile:'manpads', hasRocketFlight:true,
     projColor:'#fff3c4', trailColor:'rgba(255,243,196,0.55)',
     desc:'Самонаведение, 1 ракета', trait:'+ Дальний ИК/радар', evasivePenalty:0,
   },
@@ -124,7 +119,7 @@ const WEAPONS = {
     fireRate:105, projSpeed:970, maxRange:410, damage:18, splash:0,
     magazine:100, reserve:360, reload:2600, tracking:0, spread:0.036,
     heatPerShot:0.022, coolRate:0.28, overheatAt:1.0,
-    detectBonus:0, auto:true, lockWindow:false,
+    detectBonus:0, auto:true, lockWindow:false, soundProfile:'zu23', hasRocketFlight:false,
     projColor:'#ffe18a', trailColor:'rgba(255,225,138,0.32)',
     desc:'Ручная спаренная пушка', trait:'Авто · дешёвые БК', evasivePenalty:0.07,
   },
@@ -133,7 +128,7 @@ const WEAPONS = {
     fireRate:70, projSpeed:1250, maxRange:500, damage:14, splash:0,
     magazine:80, reserve:420, reload:2800, tracking:0, spread:0.046,
     heatPerShot:0.026, coolRate:0.24, overheatAt:1.0,
-    detectBonus:60, auto:true, lockWindow:false,
+    detectBonus:60, auto:true, lockWindow:false, soundProfile:'shilka', hasRocketFlight:false,
     projColor:'#ff9d4d', trailColor:'rgba(255,157,77,0.42)',
     desc:'Счетверённая установка', trait:'Радар · нагрев', evasivePenalty:0.055,
   },
@@ -142,7 +137,7 @@ const WEAPONS = {
     fireRate:95, projSpeed:1440, maxRange:560, damage:24, splash:0,
     magazine:70, reserve:280, reload:3000, tracking:0.06, spread:0.018,
     heatPerShot:0.034, coolRate:0.25, overheatAt:1.0,
-    detectBonus:120, auto:true, lockWindow:true,
+    detectBonus:120, auto:true, lockWindow:true, soundProfile:'gepard', hasRocketFlight:false,
     projColor:'#9dffb0', trailColor:'rgba(157,255,176,0.4)',
     desc:'Радарная автопушка', trait:'Точное сопровождение', evasivePenalty:0.02,
   },
@@ -151,7 +146,7 @@ const WEAPONS = {
     fireRate:680, projSpeed:980, maxRange:640, damage:78, splash:48, proximity:42,
     magazine:8, reserve:42, reload:3600, tracking:0, spread:0.014,
     heatPerShot:0.05, coolRate:0.30, overheatAt:1.0,
-    detectBonus:30, auto:false, lockWindow:false,
+    detectBonus:30, auto:false, lockWindow:false, soundProfile:'s60', hasRocketFlight:false,
     projColor:'#ffd98a', trailColor:'rgba(255,217,138,0.42)',
     desc:'Фугасный снаряд', trait:'Прокс. взрыватель / flak', evasivePenalty:0.015,
   },
@@ -160,7 +155,7 @@ const WEAPONS = {
     fireRate:1800, projSpeed:900, maxRange:920, damage:155, splash:70, proximity:55,
     magazine:2, reserve:6, reload:5200, tracking:0.26, spread:0,
     heatPerShot:0.08, coolRate:0.35, overheatAt:1.0,
-    detectBonus:260, auto:false, lockWindow:true,
+    detectBonus:260, auto:false, lockWindow:true, soundProfile:'nasams', hasRocketFlight:true,
     projColor:'#8fd7ff', trailColor:'rgba(143,215,255,0.55)',
     desc:'Дальняя ракета', trait:'Дорого · дальний перехват', evasivePenalty:0,
   },
@@ -169,7 +164,7 @@ const WEAPONS = {
     fireRate:650, projSpeed:0, maxRange:300, damage:0, splash:95,
     magazine:10, reserve:35, reload:4400, tracking:0, spread:0.35,
     heatPerShot:0.11, coolRate:0.22, overheatAt:1.0,
-    detectBonus:-40, auto:true, lockWindow:false,
+    detectBonus:-40, auto:true, lockWindow:false, soundProfile:'jammer', hasRocketFlight:false,
     projColor:'#62ffe0', trailColor:'rgba(98,255,224,0.25)',
     desc:'Подавляет FPV/релейные', trait:'Не убивает · глушит', evasivePenalty:0,
   },
@@ -178,7 +173,7 @@ const WEAPONS = {
     fireRate:900, projSpeed:520, maxRange:170, damage:34, splash:34, proximity:26,
     magazine:2, reserve:16, reload:2100, tracking:0, spread:0.11,
     heatPerShot:0.06, coolRate:0.4, overheatAt:1.0,
-    detectBonus:0, auto:false, lockWindow:false,
+    detectBonus:0, auto:false, lockWindow:false, soundProfile:'netgun', hasRocketFlight:false,
     projColor:'#c8ffd9', trailColor:'rgba(200,255,217,0.35)',
     desc:'Короткая дистанция', trait:'Лучше против малых БПЛА', evasivePenalty:-0.02,
   },
@@ -187,7 +182,7 @@ const WEAPONS = {
     fireRate:120, projSpeed:0, maxRange:430, damage:4, splash:0,
     magazine:140, reserve:260, reload:2400, tracking:0, spread:0.022,
     heatPerShot:0.018, coolRate:0.20, overheatAt:1.0,
-    detectBonus:30, auto:true, lockWindow:true,
+    detectBonus:30, auto:true, lockWindow:true, soundProfile:'dazzler', hasRocketFlight:false,
     projColor:'#ff5dff', trailColor:'rgba(255,93,255,0.35)',
     desc:'Урон сенсорам', trait:'Ослепляет разведку', evasivePenalty:0.01,
   },
@@ -196,24 +191,32 @@ const WEAPONS = {
     fireRate:2400, projSpeed:430, maxRange:620, damage:65, splash:22,
     magazine:1, reserve:5, reload:3600, tracking:0.34, spread:0,
     heatPerShot:0.04, coolRate:0.4, overheatAt:1.0,
-    detectBonus:20, auto:false, lockWindow:true,
+    detectBonus:20, auto:false, lockWindow:true, soundProfile:'interceptor', hasRocketFlight:false,
     projColor:'#5fff8f', trailColor:'rgba(95,255,143,0.45)',
     desc:'Охотится за FPV', trait:'Мини-дрон догоняет цели', evasivePenalty:0,
   },
+  avenger: {
+    id:'avenger', key:'-', class:'sam', nameRu:'Avenger / Stinger', nameEn:'Avenger Stinger Turret',
+    fireRate:2000, projSpeed:760, maxRange:480, damage:90, splash:0,
+    magazine:1, reserve:10, reload:2400, tracking:0.30, spread:0,
+    heatPerShot:0.07, coolRate:0.4, overheatAt:1.0,
+    detectBonus:90, auto:false, lockWindow:true, soundProfile:'avenger', hasRocketFlight:true,
+    projColor:'#ffd8e0', trailColor:'rgba(255,216,224,0.5)',
+    desc:'Быстрый разворот турели', trait:'Лёгкая ЗРК на базе ИК-ракеты', evasivePenalty:0,
+  },
+  kpv: {
+    id:'kpv', key:'=', class:'cannon', nameRu:'КПВТ 14.5мм', nameEn:'KPVT Heavy MG',
+    fireRate:140, projSpeed:1100, maxRange:450, damage:30, splash:0,
+    magazine:40, reserve:200, reload:2200, tracking:0, spread:0.028,
+    heatPerShot:0.03, coolRate:0.26, overheatAt:1.0,
+    detectBonus:0, auto:true, lockWindow:false, soundProfile:'kpv', hasRocketFlight:false,
+    projColor:'#ffcf6e', trailColor:'rgba(255,207,110,0.4)',
+    desc:'Тяжёлый крупнокалиберный', trait:'Высокий урон за выстрел', evasivePenalty:0.045,
+  },
 };
-const WEAPON_ORDER = ['manpads','zu23','shilka','gepard','s60','nasams','jammer','netgun','dazzler','interceptor'];
+const WEAPON_ORDER = ['manpads','zu23','shilka','gepard','s60','nasams','jammer','netgun','dazzler','interceptor','avenger','kpv'];
 
 /* ─── DRONE TYPES — now with realistic silhouette keys ───────────────────── */
-/*
-  shape keys:
-    shahed136   — Shahed-136 / Geran-2, big delta-wing with pusher prop at tail
-    shahed131   — Shahed-131, shorter wingspan, similar delta but smaller
-    orlan10     — Orlan-10 style fixed-wing recon, high-wing tractor prop, boxy fuselage
-    fpv_racer   — FPV kamikaze, X-quad racer frame, small
-    quad_heavy  — heavy hexacopter bomber (Vampire)
-    lancet      — Lancet loitering munition, tandem delta wings, slim fuselage
-    mohajer     — Mohajer-6 style, twin-boom pusher with bulbous camera nose
-*/
 const DRONE_TYPES = [
   {
     model:'Shahed-136', shape:'shahed136', kind:'loitering munition', role:'strike',
@@ -268,6 +271,16 @@ const DRONE_TYPES = [
     color:'#202028', accent:'#8fd7ff', threat:'high', evasive:false,
   },
   {
+    model:'Lytiy', shape:'lytiy', kind:'strike fixed-wing', role:'strike',
+    speed:96, hp:50, radarSig:0.50, visualSig:0.55, thermalSig:0.46, acousticSig:0.40, ewResist:0.62, payload:14, w:28, h:10,
+    color:'#7d8a6b', accent:'#3f4a30', threat:'high', evasive:false,
+  },
+  {
+    model:'Bars', shape:'bars', kind:'reactive rocket drone', role:'fast_strike',
+    speed:185, hp:26, radarSig:0.34, visualSig:0.30, thermalSig:0.62, acousticSig:0.58, ewResist:0.72, payload:17, w:24, h:9,
+    color:'#3a3a3a', accent:'#ff7a3d', threat:'high', evasive:true,
+  },
+  {
     model:'Jet Target', shape:'lancet', kind:'jet-powered drone missile', role:'jet',
     speed:250, hp:24, radarSig:0.42, visualSig:0.36, thermalSig:0.96, acousticSig:0.82, ewResist:0.88, payload:22, terminalSprint:true, w:30, h:14,
     color:'#202020', accent:'#ffb13d', threat:'critical', evasive:true,
@@ -288,17 +301,6 @@ const WEATHER_PRESETS = [
   { id:'fog', name:'Туман', radar:0.92, visual:0.48, thermal:0.68, acoustic:1.1, ew:1.0 },
   { id:'rain', name:'Дождь', radar:0.74, visual:0.62, thermal:0.78, acoustic:0.72, ew:1.08 },
 ];
-const UPGRADE_CHOICES = [
-  { id:'radar', label:'Улучшить РЛС', desc:'+12% radar range', apply:w=>w.upgrades.radar+=0.12 },
-  { id:'thermal', label:'Тепловизор', desc:'+16% IR detection', apply:w=>w.upgrades.thermal+=0.16 },
-  { id:'ammo', label:'Склад БК', desc:'+30% reserve ammo', apply:w=>w.upgrades.ammo+=0.30 },
-  { id:'reload', label:'Расчёт перезарядки', desc:'-10% reload time', apply:w=>w.upgrades.reload+=0.10 },
-  { id:'harden', label:'Укрепить базу', desc:'+15 integrity', apply:w=>w.integrity=Math.min(140,w.integrity+15) },
-  { id:'fcs', label:'Fire-control computer', desc:'+tracking / less spread', apply:w=>w.upgrades.fcs+=0.10 },
-  { id:'ew', label:'EW station', desc:'+jammer strength', apply:w=>w.upgrades.ew+=0.14 },
-  { id:'id', label:'Drone ID database', desc:'faster model recognition', apply:w=>w.upgrades.ident+=0.20 },
-];
-function chooseUpgradeOptions(wave){ return UPGRADE_CHOICES.slice().sort((a,b)=>(Math.sin(wave*a.id.length)-Math.sin(wave*b.id.length))).slice(0,3); }
 function weatherForWave(wave){ return WEATHER_PRESETS[wave % WEATHER_PRESETS.length]; }
 function sensorSummary(d){ return Object.entries(d.sensors||{}).filter(([,v])=>v>0).map(([k])=>SENSOR_LABELS[k]).join('+') || 'НЕТ'; }
 function knownName(d){ return d.idLevel>=2 ? d.type.model : d.idLevel===1 ? (d.type.radarSig>0.65?'Крупный контакт':'Малый контакт') : 'Неизвестный контакт'; }
@@ -370,9 +372,58 @@ const AudioFX = (() => {
     master.connect(audioCtx.destination);
 
     if (name === 'fire') {
-      const isMissile = variant.weapon && variant.weapon.tracking > 0;
-      noise(audioCtx, { start:t, dur:isMissile ? 0.16 : 0.055, gain:isMissile ? 0.18 : 0.11, dest:master, filterType:'highpass', freq:isMissile ? 260 : 1200, q:0.4 });
-      tone(audioCtx, { type:'square', freq:isMissile ? 110 : 190, endFreq:isMissile ? 58 : 90, start:t, dur:isMissile ? 0.18 : 0.045, gain:isMissile ? 0.12 : 0.06, dest:master });
+      const profile = (variant.weapon && variant.weapon.soundProfile) || 'zu23';
+      if (profile === 'manpads') {
+        // sharp ignition crack + low launch thump, missile sustain handled separately
+        noise(audioCtx, { start:t, dur:0.10, gain:0.16, dest:master, filterType:'highpass', freq:500, q:0.5 });
+        tone(audioCtx, { type:'square', freq:140, endFreq:70, start:t, dur:0.14, gain:0.14, dest:master });
+      } else if (profile === 'nasams') {
+        // big cold-launch boom, deep and long
+        noise(audioCtx, { start:t, dur:0.22, gain:0.22, dest:master, filterType:'lowpass', freq:900, q:0.4 });
+        tone(audioCtx, { type:'sine', freq:75, endFreq:38, start:t, dur:0.30, gain:0.20, dest:master });
+      } else if (profile === 'avenger') {
+        // light Stinger-style hiss-pop launch
+        noise(audioCtx, { start:t, dur:0.12, gain:0.13, dest:master, filterType:'highpass', freq:900, q:0.6 });
+        tone(audioCtx, { type:'triangle', freq:260, endFreq:120, start:t, dur:0.13, gain:0.10, dest:master });
+      } else if (profile === 'zu23') {
+        // raw mechanical twin-barrel clack
+        noise(audioCtx, { start:t, dur:0.05, gain:0.12, dest:master, filterType:'bandpass', freq:1500, q:0.7 });
+        tone(audioCtx, { type:'square', freq:210, endFreq:95, start:t, dur:0.045, gain:0.07, dest:master });
+      } else if (profile === 'shilka') {
+        // higher RoF buzzsaw crack, brighter/thinner than ZU-23
+        noise(audioCtx, { start:t, dur:0.035, gain:0.09, dest:master, filterType:'bandpass', freq:2300, q:0.9 });
+        tone(audioCtx, { type:'sawtooth', freq:260, endFreq:140, start:t, dur:0.03, gain:0.05, dest:master });
+      } else if (profile === 'gepard') {
+        // crisp radar-cannon crack, tighter and metallic
+        noise(audioCtx, { start:t, dur:0.045, gain:0.10, dest:master, filterType:'bandpass', freq:2700, q:1.1 });
+        tone(audioCtx, { type:'square', freq:340, endFreq:170, start:t, dur:0.04, gain:0.06, dest:master });
+      } else if (profile === 'kpv') {
+        // heavy 14.5mm — deep, slower, more thump per round
+        noise(audioCtx, { start:t, dur:0.065, gain:0.15, dest:master, filterType:'bandpass', freq:1100, q:0.6 });
+        tone(audioCtx, { type:'square', freq:150, endFreq:65, start:t, dur:0.07, gain:0.10, dest:master });
+      } else if (profile === 's60') {
+        // big flak shell launch — deep boom with delayed crack
+        noise(audioCtx, { start:t, dur:0.16, gain:0.20, dest:master, filterType:'lowpass', freq:1000, q:0.5 });
+        tone(audioCtx, { type:'sine', freq:90, endFreq:40, start:t, dur:0.2, gain:0.16, dest:master });
+      } else if (profile === 'jammer') {
+        // electronic warble burst, no kinetic transient
+        tone(audioCtx, { type:'sawtooth', freq:1800, endFreq:600, start:t, dur:0.18, gain:0.06, dest:master });
+        tone(audioCtx, { type:'sine', freq:2400, endFreq:900, start:t+0.03, dur:0.14, gain:0.04, dest:master });
+      } else if (profile === 'netgun') {
+        // soft shotgun-like pneumatic launch
+        noise(audioCtx, { start:t, dur:0.09, gain:0.14, dest:master, filterType:'lowpass', freq:1400, q:0.5 });
+        tone(audioCtx, { type:'triangle', freq:180, endFreq:90, start:t, dur:0.1, gain:0.08, dest:master });
+      } else if (profile === 'dazzler') {
+        // thin high laser zap, almost no bass
+        tone(audioCtx, { type:'sine', freq:2600, endFreq:1900, start:t, dur:0.05, gain:0.045, dest:master });
+      } else if (profile === 'interceptor') {
+        // small drone motor spin-up launch chirp
+        tone(audioCtx, { type:'triangle', freq:500, endFreq:900, start:t, dur:0.12, gain:0.07, dest:master });
+        noise(audioCtx, { start:t, dur:0.1, gain:0.04, dest:master, filterType:'highpass', freq:1800, q:1 });
+      } else {
+        noise(audioCtx, { start:t, dur:0.055, gain:0.11, dest:master, filterType:'highpass', freq:1200, q:0.4 });
+        tone(audioCtx, { type:'square', freq:190, endFreq:90, start:t, dur:0.045, gain:0.06, dest:master });
+      }
     } else if (name === 'reload') {
       tone(audioCtx, { type:'triangle', freq:360, endFreq:160, start:t, dur:0.12, gain:0.055, dest:master });
       noise(audioCtx, { start:t + 0.04, dur:0.09, gain:0.045, dest:master, filterType:'bandpass', freq:1800, q:1.6 });
@@ -391,15 +442,127 @@ const AudioFX = (() => {
     }
   };
 
+  /* ── Looping sustained sounds: rocket flight + drone engines ──
+     Each loop owns a persistent oscillator/noise graph with a gain node
+     we can ramp in update() every frame based on distance/life. */
+  const loops = new Map(); // id -> { stop(), setVolume(v), setPitch(p) }
+
+  const startRocketFlight = (id) => {
+    const audioCtx = getCtx();
+    if (!audioCtx) return;
+    if (loops.has(id)) return;
+    const t = audioCtx.currentTime;
+    const noiseSrc = audioCtx.createBufferSource();
+    noiseSrc.buffer = makeNoise(audioCtx);
+    noiseSrc.loop = true;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1200;
+    filter.Q.value = 0.7;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.09, t + 0.05);
+    noiseSrc.connect(filter).connect(gain).connect(audioCtx.destination);
+    noiseSrc.start(t);
+    loops.set(id, {
+      stop: () => {
+        try {
+          const now = audioCtx.currentTime;
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+          noiseSrc.stop(now + 0.1);
+        } catch (e) {}
+      },
+      setVolume: (v) => { try { gain.gain.linearRampToValueAtTime(Math.max(0.0001, v*0.09), audioCtx.currentTime + 0.03); } catch(e){} },
+      setPitch: (p) => { try { filter.frequency.linearRampToValueAtTime(900 + p*700, audioCtx.currentTime + 0.05); } catch(e){} },
+    });
+  };
+
+  const startEngine = (id, kind = 'prop') => {
+    const audioCtx = getCtx();
+    if (!audioCtx) return;
+    if (loops.has(id)) return;
+    const t = audioCtx.currentTime;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.connect(audioCtx.destination);
+
+    if (kind === 'fpv') {
+      // high-pitched whiny racer motor — detuned sawtooth pair
+      const o1 = audioCtx.createOscillator(); o1.type='sawtooth'; o1.frequency.value=320;
+      const o2 = audioCtx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=326;
+      const filter = audioCtx.createBiquadFilter(); filter.type='bandpass'; filter.frequency.value=1400; filter.Q.value=0.6;
+      o1.connect(filter); o2.connect(filter); filter.connect(gain);
+      o1.start(t); o2.start(t);
+      gain.gain.exponentialRampToValueAtTime(0.045, t+0.1);
+      loops.set(id, {
+        stop: () => { try { const now=audioCtx.currentTime; gain.gain.exponentialRampToValueAtTime(0.0001, now+0.1); o1.stop(now+0.12); o2.stop(now+0.12); } catch(e){} },
+        setVolume: (v) => { try { gain.gain.linearRampToValueAtTime(Math.max(0.0001, v*0.045), audioCtx.currentTime+0.04); } catch(e){} },
+        setPitch: (p) => { try { o1.frequency.linearRampToValueAtTime(280+p*140, audioCtx.currentTime+0.05); o2.frequency.linearRampToValueAtTime(286+p*140, audioCtx.currentTime+0.05); } catch(e){} },
+      });
+    } else if (kind === 'jet') {
+      // turbojet whine — filtered noise + high tone
+      const noiseSrc = audioCtx.createBufferSource(); noiseSrc.buffer = makeNoise(audioCtx); noiseSrc.loop = true;
+      const filter = audioCtx.createBiquadFilter(); filter.type='highpass'; filter.frequency.value=1800; filter.Q.value=0.3;
+      const o = audioCtx.createOscillator(); o.type='sine'; o.frequency.value=1100;
+      const oGain = audioCtx.createGain(); oGain.gain.value=0.4;
+      noiseSrc.connect(filter).connect(gain);
+      o.connect(oGain).connect(gain);
+      noiseSrc.start(t); o.start(t);
+      gain.gain.exponentialRampToValueAtTime(0.06, t+0.1);
+      loops.set(id, {
+        stop: () => { try { const now=audioCtx.currentTime; gain.gain.exponentialRampToValueAtTime(0.0001, now+0.1); noiseSrc.stop(now+0.12); o.stop(now+0.12); } catch(e){} },
+        setVolume: (v) => { try { gain.gain.linearRampToValueAtTime(Math.max(0.0001, v*0.06), audioCtx.currentTime+0.04); } catch(e){} },
+        setPitch: (p) => { try { o.frequency.linearRampToValueAtTime(900+p*500, audioCtx.currentTime+0.05); } catch(e){} },
+      });
+    } else if (kind === 'heavy') {
+      // deep multi-rotor thrum — low square + sub
+      const o1 = audioCtx.createOscillator(); o1.type='square'; o1.frequency.value=58;
+      const o2 = audioCtx.createOscillator(); o2.type='triangle'; o2.frequency.value=116;
+      const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=420; filter.Q.value=0.4;
+      o1.connect(filter); o2.connect(filter); filter.connect(gain);
+      o1.start(t); o2.start(t);
+      gain.gain.exponentialRampToValueAtTime(0.07, t+0.12);
+      loops.set(id, {
+        stop: () => { try { const now=audioCtx.currentTime; gain.gain.exponentialRampToValueAtTime(0.0001, now+0.12); o1.stop(now+0.14); o2.stop(now+0.14); } catch(e){} },
+        setVolume: (v) => { try { gain.gain.linearRampToValueAtTime(Math.max(0.0001, v*0.07), audioCtx.currentTime+0.04); } catch(e){} },
+        setPitch: (p) => { try { o1.frequency.linearRampToValueAtTime(50+p*24, audioCtx.currentTime+0.05); } catch(e){} },
+      });
+    } else {
+      // standard prop engine drone — low sawtooth with slow beat
+      const o1 = audioCtx.createOscillator(); o1.type='sawtooth'; o1.frequency.value=88;
+      const o2 = audioCtx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=91;
+      const filter = audioCtx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=650; filter.Q.value=0.5;
+      o1.connect(filter); o2.connect(filter); filter.connect(gain);
+      o1.start(t); o2.start(t);
+      gain.gain.exponentialRampToValueAtTime(0.05, t+0.12);
+      loops.set(id, {
+        stop: () => { try { const now=audioCtx.currentTime; gain.gain.exponentialRampToValueAtTime(0.0001, now+0.12); o1.stop(now+0.14); o2.stop(now+0.14); } catch(e){} },
+        setVolume: (v) => { try { gain.gain.linearRampToValueAtTime(Math.max(0.0001, v*0.05), audioCtx.currentTime+0.04); } catch(e){} },
+        setPitch: (p) => { try { o1.frequency.linearRampToValueAtTime(80+p*30, audioCtx.currentTime+0.05); o2.frequency.linearRampToValueAtTime(83+p*30, audioCtx.currentTime+0.05); } catch(e){} },
+      });
+    }
+  };
+
+  const updateLoopVolume = (id, v) => { const l = loops.get(id); if (l) l.setVolume(v); };
+  const updateLoopPitch = (id, p) => { const l = loops.get(id); if (l) l.setPitch(p); };
+  const stopLoop = (id) => { const l = loops.get(id); if (l) { l.stop(); loops.delete(id); } };
+  const stopAllLoops = () => { loops.forEach(l => l.stop()); loops.clear(); };
+
   return {
     isMuted: () => muted,
     setMuted: (value) => {
       muted = value;
       localStorage.setItem(storageKey, String(muted));
-      if (muted && ctx) ctx.suspend();
+      if (muted && ctx) { ctx.suspend(); stopAllLoops(); }
       else getCtx();
     },
     play,
+    startRocketFlight,
+    startEngine,
+    updateLoopVolume,
+    updateLoopPitch,
+    stopLoop,
+    stopAllLoops,
   };
 })();
 
@@ -413,17 +576,12 @@ function drawDrone(ctx, d) {
   switch (t.shape) {
 
     case 'shahed136': {
-      // Shahed-136 / Geran-2
-      // Distinctive huge delta wing (V shape), slim central fuselage, pusher prop at tail
-      // Viewed from above, flying nose-right (+x direction)
       const W = t.w, H = t.h;
-
-      // Main delta wing — two swept triangles forming the V
       ctx.beginPath();
-      ctx.moveTo(W*0.35, 0);          // nose tip
-      ctx.lineTo(-W*0.48, -H*0.5);    // left wingtip
-      ctx.lineTo(-W*0.30, 0);         // wing root (behind engine)
-      ctx.lineTo(-W*0.48, H*0.5);     // right wingtip
+      ctx.moveTo(W*0.35, 0);
+      ctx.lineTo(-W*0.48, -H*0.5);
+      ctx.lineTo(-W*0.30, 0);
+      ctx.lineTo(-W*0.48, H*0.5);
       ctx.closePath();
       ctx.fillStyle = t.wingColor || '#242820';
       ctx.fill();
@@ -431,7 +589,6 @@ function drawDrone(ctx, d) {
       ctx.lineWidth = 0.8;
       ctx.stroke();
 
-      // Central fuselage — narrow spine
       ctx.beginPath();
       ctx.moveTo(W*0.40, 0);
       ctx.lineTo(W*0.20, -H*0.10);
@@ -446,7 +603,6 @@ function drawDrone(ctx, d) {
       ctx.lineWidth = 0.6;
       ctx.stroke();
 
-      // Pusher prop disc at tail
       ctx.fillStyle = 'rgba(200,200,180,0.25)';
       ctx.beginPath();
       ctx.arc(-W*0.34, 0, H*0.16, 0, Math.PI*2);
@@ -455,7 +611,6 @@ function drawDrone(ctx, d) {
       ctx.lineWidth = 0.8;
       ctx.stroke();
 
-      // Wing leading-edge honeycomb texture hint (2 faint lines)
       ctx.strokeStyle = 'rgba(255,255,200,0.06)';
       ctx.lineWidth = 0.5;
       ctx.beginPath(); ctx.moveTo(W*0.30, -H*0.12); ctx.lineTo(-W*0.38, -H*0.38); ctx.stroke();
@@ -464,7 +619,6 @@ function drawDrone(ctx, d) {
     }
 
     case 'shahed131': {
-      // Shahed-131 — same family but shorter wingspan, slightly stubbier
       const W = t.w, H = t.h;
       ctx.beginPath();
       ctx.moveTo(W*0.38, 0);
@@ -487,51 +641,42 @@ function drawDrone(ctx, d) {
       ctx.fillStyle = t.color; ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.5; ctx.stroke();
 
-      // prop
       ctx.fillStyle = 'rgba(200,200,180,0.22)';
       ctx.beginPath(); ctx.arc(-W*0.30, 0, H*0.15, 0, Math.PI*2); ctx.fill();
       break;
     }
 
     case 'orlan10': {
-      // Orlan-10 — conventional tractor prop, high-wing monoplane, boxy fuselage, inverted V tail
       const W = t.w, H = t.h;
 
-      // Straight high wing
       ctx.fillStyle = '#6a6a5a';
       ctx.beginPath();
       ctx.moveTo(W*0.12, -H*0.06);
       ctx.lineTo(-W*0.28, -H*0.06);
       ctx.lineTo(-W*0.28, H*0.06);
       ctx.lineTo(W*0.12, H*0.06);
-      // wingtip shape
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = '#444';
       ctx.lineWidth = 0.6; ctx.stroke();
 
-      // Wing span
       ctx.fillStyle = '#5a5a4a';
-      ctx.fillRect(-W*0.28, -H*0.5, W*0.44, H); // full wing
+      ctx.fillRect(-W*0.28, -H*0.5, W*0.44, H);
 
-      // Fuselage — boxy, prominent
       ctx.fillStyle = t.color;
       ctx.beginPath();
       ctx.roundRect ? ctx.roundRect(-W*0.28, -H*0.22, W*0.65, H*0.44, 3) : ctx.rect(-W*0.28, -H*0.22, W*0.65, H*0.44);
       ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.7; ctx.stroke();
 
-      // Camera nose bubble
       ctx.fillStyle = '#222';
       ctx.beginPath(); ctx.arc(W*0.40, 0, H*0.18, 0, Math.PI*2); ctx.fill();
 
-      // Tractor prop
       ctx.fillStyle = 'rgba(180,180,160,0.28)';
       ctx.beginPath(); ctx.arc(-W*0.36, 0, H*0.22, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = 'rgba(180,180,160,0.55)';
       ctx.lineWidth = 0.8; ctx.stroke();
 
-      // Inverted-V tail hint
       ctx.strokeStyle = '#4a4a3a'; ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(-W*0.24, -H*0.22); ctx.lineTo(-W*0.10, -H*0.48);
@@ -541,10 +686,8 @@ function drawDrone(ctx, d) {
     }
 
     case 'lancet': {
-      // Lancet loitering munition — tandem delta wings (two sets, fore and aft), slim fuselage
       const W = t.w, H = t.h;
 
-      // Rear delta wings (larger)
       ctx.fillStyle = '#1a1c1a';
       ctx.beginPath();
       ctx.moveTo(-W*0.05, 0);
@@ -555,7 +698,6 @@ function drawDrone(ctx, d) {
       ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.7; ctx.stroke();
 
-      // Forward canard wings (smaller)
       ctx.fillStyle = '#161816';
       ctx.beginPath();
       ctx.moveTo(W*0.28, 0);
@@ -565,7 +707,6 @@ function drawDrone(ctx, d) {
       ctx.closePath();
       ctx.fill(); ctx.stroke();
 
-      // Slim fuselage
       ctx.fillStyle = t.color;
       ctx.beginPath();
       ctx.moveTo(W*0.48, 0);
@@ -578,44 +719,36 @@ function drawDrone(ctx, d) {
       ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.5; ctx.stroke();
 
-      // Cyan accent stripe (weapon seeker)
       ctx.strokeStyle = t.accent; ctx.lineWidth = 1.4;
       ctx.beginPath(); ctx.moveTo(W*0.44, 0); ctx.lineTo(W*0.28, 0); ctx.stroke();
       break;
     }
 
     case 'fpv_racer': {
-      // FPV kamikaze — X-frame racer quad, very small
       const W = t.w, H = t.h;
 
-      // X cross arms
       ctx.strokeStyle = '#333'; ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.moveTo(-W*0.5, -H*0.5); ctx.lineTo(W*0.5, H*0.5);
       ctx.moveTo(W*0.5, -H*0.5); ctx.lineTo(-W*0.5, H*0.5);
       ctx.stroke();
 
-      // Center FC plate
       ctx.fillStyle = '#1a1a1a';
       ctx.beginPath();
       ctx.roundRect ? ctx.roundRect(-W*0.18, -H*0.18, W*0.36, H*0.36, 2) : ctx.rect(-W*0.18, -H*0.18, W*0.36, H*0.36);
       ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.8; ctx.stroke();
 
-      // 4 motor pods
       [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sy]) => {
         const mx = sx*W*0.46, my = sy*H*0.46;
-        // prop disc
         ctx.fillStyle = 'rgba(180,50,50,0.18)';
         ctx.beginPath(); ctx.arc(mx, my, W*0.16, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = '#ff4040'; ctx.lineWidth = 0.7;
         ctx.beginPath(); ctx.arc(mx, my, W*0.16, 0, Math.PI*2); ctx.stroke();
-        // motor can
         ctx.fillStyle = '#2a2a2a';
         ctx.beginPath(); ctx.arc(mx, my, W*0.07, 0, Math.PI*2); ctx.fill();
       });
 
-      // Camera / warhead front
       ctx.fillStyle = '#111';
       ctx.beginPath(); ctx.arc(0, 0, W*0.1, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = '#ff6060'; ctx.lineWidth = 0.6; ctx.stroke();
@@ -623,16 +756,13 @@ function drawDrone(ctx, d) {
     }
 
     case 'mohajer': {
-      // Mohajer-6 — twin-boom pusher with bulbous camera nose, narrow fuselage
       const W = t.w, H = t.h;
 
-      // Main straight wing
       ctx.fillStyle = '#7a7a6a';
       ctx.fillRect(-W*0.20, -H*0.5, W*0.45, H);
       ctx.strokeStyle = '#4a4a3a'; ctx.lineWidth = 0.6;
       ctx.strokeRect(-W*0.20, -H*0.5, W*0.45, H);
 
-      // Main fuselage
       ctx.fillStyle = t.color;
       ctx.beginPath();
       ctx.moveTo(W*0.5, 0);
@@ -645,28 +775,79 @@ function drawDrone(ctx, d) {
       ctx.fill();
       ctx.strokeStyle = t.accent; ctx.lineWidth = 0.7; ctx.stroke();
 
-      // Camera ball nose
       ctx.fillStyle = '#111';
       ctx.beginPath(); ctx.arc(W*0.48, 0, H*0.20, 0, Math.PI*2); ctx.fill();
 
-      // Twin booms
       ctx.fillStyle = '#6a6a5a';
       [-1, 1].forEach(sy => {
         ctx.fillRect(-W*0.28, sy*H*0.32, W*0.38, H*0.12);
       });
 
-      // Pusher prop
       ctx.fillStyle = 'rgba(180,180,160,0.24)';
       ctx.beginPath(); ctx.arc(-W*0.26, 0, H*0.24, 0, Math.PI*2); ctx.fill();
       ctx.strokeStyle = 'rgba(180,180,160,0.5)'; ctx.lineWidth = 0.8; ctx.stroke();
       break;
     }
 
+    case 'lytiy': {
+      // Lytiy — sleek swept strike drone, narrower than Beaver-family, sharp arrow nose
+      const W = t.w, H = t.h;
+      ctx.beginPath();
+      ctx.moveTo(W*0.55, 0);
+      ctx.lineTo(W*0.05, -H*0.55);
+      ctx.lineTo(-W*0.45, -H*0.12);
+      ctx.lineTo(-W*0.50, 0);
+      ctx.lineTo(-W*0.45, H*0.12);
+      ctx.lineTo(W*0.05, H*0.55);
+      ctx.closePath();
+      ctx.fillStyle = t.color;
+      ctx.fill();
+      ctx.strokeStyle = t.accent; ctx.lineWidth = 0.8; ctx.stroke();
+
+      // dorsal accent stripe
+      ctx.strokeStyle = t.accent; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(W*0.40,0); ctx.lineTo(-W*0.35,0); ctx.stroke();
+
+      // pusher prop at tail
+      ctx.fillStyle = 'rgba(200,200,180,0.22)';
+      ctx.beginPath(); ctx.arc(-W*0.46, 0, H*0.16, 0, Math.PI*2); ctx.fill();
+      break;
+    }
+
+    case 'bars': {
+      // Bars — slim rocket-bodied "reactive" drone: cylindrical fuselage, small fins, bright exhaust glow
+      const W = t.w, H = t.h;
+      ctx.beginPath();
+      ctx.moveTo(W*0.56, 0);
+      ctx.lineTo(W*0.18, -H*0.42);
+      ctx.lineTo(-W*0.48, -H*0.40);
+      ctx.lineTo(-W*0.60, 0);
+      ctx.lineTo(-W*0.48, H*0.40);
+      ctx.lineTo(W*0.18, H*0.42);
+      ctx.closePath();
+      ctx.fillStyle = t.color;
+      ctx.fill();
+      ctx.strokeStyle = t.accent; ctx.lineWidth = 0.8; ctx.stroke();
+
+      // small tail fins (X-fin layout hint)
+      ctx.strokeStyle = t.accent; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-W*0.42, -H*0.36); ctx.lineTo(-W*0.62, -H*0.62);
+      ctx.moveTo(-W*0.42, H*0.36); ctx.lineTo(-W*0.62, H*0.62);
+      ctx.stroke();
+
+      // exhaust glow
+      ctx.fillStyle = t.accent;
+      ctx.beginPath(); ctx.arc(-W*0.58, 0, 2.6, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath(); ctx.arc(-W*0.58, 0, 5.2, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      break;
+    }
+
     case 'quad_heavy': {
-      // Vampire — heavy hexacopter, central body + 6 arms, each with large props
       const W = t.w, H = t.h;
 
-      // Arms
       ctx.strokeStyle = '#333'; ctx.lineWidth = 2.5;
       for (let k=0; k<6; k++) {
         const a = k/6*Math.PI*2;
@@ -676,7 +857,6 @@ function drawDrone(ctx, d) {
         ctx.stroke();
       }
 
-      // Prop discs
       ctx.fillStyle = 'rgba(100,100,100,0.18)';
       ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8;
       for (let k=0; k<6; k++) {
@@ -686,7 +866,6 @@ function drawDrone(ctx, d) {
         ctx.fill(); ctx.stroke();
       }
 
-      // Central hexagonal body
       ctx.fillStyle = '#181818';
       ctx.beginPath();
       for (let k=0; k<6; k++) {
@@ -697,11 +876,9 @@ function drawDrone(ctx, d) {
       ctx.closePath(); ctx.fill();
       ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8; ctx.stroke();
 
-      // Payload bay
       ctx.fillStyle = '#2a2a2a';
       ctx.fillRect(-W*0.10, -H*0.10, W*0.20, H*0.20);
 
-      // Status LED (red)
       ctx.fillStyle = '#ff3030';
       ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
       break;
@@ -710,7 +887,6 @@ function drawDrone(ctx, d) {
 
   ctx.restore();
 
-  // Health bar
   if (d.hp < d.maxHp) {
     const bx = d.x - 16, by = d.y - t.h/2 - 10;
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -719,7 +895,6 @@ function drawDrone(ctx, d) {
     ctx.fillRect(bx, by, 32*(d.hp/d.maxHp), 4);
   }
 
-  // Detection ring
   if (d.detected) {
     ctx.strokeStyle = 'rgba(255,77,77,0.45)';
     ctx.lineWidth = 1;
@@ -728,7 +903,6 @@ function drawDrone(ctx, d) {
     ctx.setLineDash([]);
   }
 
-  // Label
   ctx.fillStyle = 'rgba(200,255,217,0.5)';
   ctx.font = '9px monospace'; ctx.textAlign = 'center';
   ctx.fillText(t.model, d.x, d.y - t.h/2 - 14);
@@ -748,10 +922,9 @@ function App() {
   const [radarOpen, setRadarOpen] = useState(false);
   const [miniRadar, setMiniRadar] = useState(null);
   const [popups, setPopups] = useState([]);
-  const [missIndicators, setMissIndicators] = useState([]); // {id, x, y}
+  const [missIndicators, setMissIndicators] = useState([]);
   const [finalStats, setFinalStats] = useState({ score:0, wave:1, kills:0 });
   const [waveFlash, setWaveFlash] = useState(null);
-  const [upgradeOptions, setUpgradeOptions] = useState([]);
   const [muted, setMuted] = useState(() => AudioFX.isMuted());
   const [dims, setDims] = useState({ w: window.innerWidth, h: window.innerHeight });
 
@@ -840,11 +1013,9 @@ function App() {
     AudioFX.play('reload');
   };
 
-  /* Compute effective spread — extra spread for MG weapons vs fast/evasive targets */
   const effectiveSpread = (wdef, target) => {
     let sp = wdef.spread;
     if (target && target.type.evasive && wdef.evasivePenalty > 0) {
-      // Scale penalty by drone speed (faster = harder to track)
       const speedFactor = Math.min(1, target.type.speed / 120);
       sp += wdef.evasivePenalty * speedFactor;
     }
@@ -918,7 +1089,6 @@ function App() {
 
     const ang = Math.atan2(world.mouse.y - world.siteY, world.mouse.x - world.siteX);
 
-    // Find nearest target in cone for spread calculation
     let nearTarget = null;
     let best = Infinity;
     world.drones.forEach(d => {
@@ -931,7 +1101,6 @@ function App() {
     const sp = effectiveSpread(wdef, nearTarget);
     const spreadAng = ang + (Math.random()-0.5) * sp * 2;
 
-    // Tracking missile target selection
     let missileTarget = null;
     if (wdef.tracking > 0) {
       let bestScore = Infinity;
@@ -952,7 +1121,7 @@ function App() {
       vy: Math.sin(spreadAng)*wdef.projSpeed,
       life: wdef.maxRange/wdef.projSpeed,
       weapon: wdef, target: missileTarget, trail:[],
-      spread: sp, proximity:wdef.proximity||0, class:wdef.class, born:now, // store for debug
+      spread: sp, proximity:wdef.proximity||0, class:wdef.class, born:now,
     });
   };
 
@@ -976,6 +1145,7 @@ function App() {
       if (t.role==='jet') return wave >= 5;
       if (t.role==='ew'||t.role==='relay') return wave >= 3;
       if (t.role==='fpv') return wave >= 2;
+      if (t.role==='fast_strike') return wave >= 3;
       return true;
     });
     if (wave%5===0) return pool.find(t=>t.role==='ew') || pool[0];
@@ -1034,9 +1204,11 @@ function App() {
     }
     if (world.waveDroneBudget <= 0 && world.drones.length===0 && world.contacts.length===0) {
       world.wave += 1;
-      setUpgradeOptions(chooseUpgradeOptions(world.wave));
-      setGameState('upgrade');
-      return;
+      world.weather = weatherForWave(world.wave);
+      world.waveDroneBudget = 3 + Math.floor(world.wave*1.7) + Math.floor(world.spottedBase*2);
+      world.spawnTimer = 1.2;
+      setWaveFlash(world.wave);
+      setTimeout(() => setWaveFlash(null), 1800);
     }
 
     for (let i=world.contacts.length-1; i>=0; i--) {
@@ -1100,7 +1272,6 @@ function App() {
     for (let i=world.projectiles.length-1; i>=0; i--) {
       const p = world.projectiles[i];
 
-      // Missile guidance
       if (p.target && world.drones.includes(p.target)) {
         const desiredAng = Math.atan2(p.target.y-p.y, p.target.x-p.x);
         const curAng = Math.atan2(p.vy, p.vx);
@@ -1155,7 +1326,6 @@ function App() {
       }
 
       if (!hit && p.life <= 0 && p.spread > 0.02) {
-        // MG miss — show indicator at tip
         spawnMissIndicator(p.x, p.y);
         spawnDustPuff(p.x, p.y);
       }
@@ -1221,17 +1391,14 @@ function App() {
   const spawnExplosion = (x, y, color, droneType, impact) => {
     world.particles.push({ x,y,vx:0,vy:0,life:0.22,color:'#fff8e0',size:impact?36:28,type:'flash' });
     world.particles.push({ x,y,vx:0,vy:0,life:0.45,color:'#ffd98a',size:5,growTo:impact?65:50,type:'shockwave' });
-    // sparks
     for (let i=0;i<28;i++) {
       const a=Math.random()*Math.PI*2, s=70+Math.random()*260;
       world.particles.push({ x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.3+Math.random()*0.5,color:i%3===0?'#ff9d4d':'#ffe18a',size:1.2+Math.random()*2.8,type:'explosion' });
     }
-    // smoke
     for (let i=0;i<10;i++) {
       const a=Math.random()*Math.PI*2, s=18+Math.random()*55;
       world.particles.push({ x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-35,life:1.0+Math.random()*0.8,color:i<4?'#111':'#333',size:4+Math.random()*8,type:'smoke' });
     }
-    // debris
     const fc = (droneType&&droneType.color)||color||'#555';
     for (let i=0;i<8+Math.floor(Math.random()*5);i++) {
       const a=Math.random()*Math.PI*2, s=80+Math.random()*280;
@@ -1267,24 +1434,19 @@ function App() {
     if (world.shake>0) ctx.translate((Math.random()-0.5)*world.shake,(Math.random()-0.5)*world.shake);
     ctx.clearRect(-20,-20,W+40,H+40);
 
-    // Background grid
     ctx.strokeStyle='rgba(95,255,143,0.05)'; ctx.lineWidth=1;
     const gs=52;
     for (let x=0;x<W;x+=gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
     for (let y=0;y<H;y+=gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
-    // Threat range ring
     ctx.strokeStyle='rgba(95,255,143,0.09)'; ctx.setLineDash([4,7]);
     ctx.beginPath(); ctx.arc(world.siteX,world.siteY,500,0,Math.PI*2); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Drones
     world.drones.forEach(d => drawDrone(ctx, d));
 
-    // Projectiles — with tracer glow for MG rounds
     world.projectiles.forEach(p => {
       const isBullet = p.weapon.auto !== false;
-      // Trail
       if (p.trail.length > 1) {
         ctx.beginPath();
         p.trail.forEach((tp,i) => i===0 ? ctx.moveTo(tp.x,tp.y) : ctx.lineTo(tp.x,tp.y));
@@ -1293,9 +1455,7 @@ function App() {
         ctx.lineWidth = isBullet ? 1.5 : 2;
         ctx.stroke();
       }
-      // Projectile head
       if (isBullet) {
-        // Tracer flash — elongated capsule
         ctx.save();
         ctx.translate(p.x,p.y);
         ctx.rotate(Math.atan2(p.vy,p.vx));
@@ -1303,14 +1463,12 @@ function App() {
         ctx.beginPath();
         ctx.ellipse(0,0,4,1.5,0,0,Math.PI*2);
         ctx.fill();
-        // Glow
         ctx.globalAlpha = 0.3 + Math.random()*0.3;
         ctx.fillStyle = p.weapon.projColor;
         ctx.beginPath(); ctx.ellipse(0,0,6,2.5,0,0,Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
         ctx.restore();
       } else {
-        // Missile — slightly bigger dot
         ctx.fillStyle = p.weapon.projColor;
         ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
         ctx.globalAlpha = 0.5;
@@ -1320,7 +1478,6 @@ function App() {
       }
     });
 
-    // Particles
     world.particles.forEach(pt => {
       const alpha = Math.max(0, pt.life * (pt.type==='fragment'?1.5:pt.type==='smoke'?1:2));
       if (pt.type==='fragment') {
@@ -1360,25 +1517,21 @@ function App() {
       }
     });
 
-    // Site turret
     ctx.save();
     ctx.translate(world.siteX, world.siteY);
     const aimAng = Math.atan2(world.mouse.y-world.siteY, world.mouse.x-world.siteX);
 
-    // Base circle
     ctx.fillStyle='rgba(95,255,143,0.12)';
     ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle='#5fff8f'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.arc(0,0,16,0,Math.PI*2); ctx.stroke();
 
-    // Barrel
     ctx.rotate(aimAng);
     ctx.strokeStyle='#c8ffd9'; ctx.lineWidth=4;
     ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(2,0); ctx.lineTo(32,0); ctx.stroke();
     ctx.lineCap='butt';
 
-    // Muzzle flash (random flicker when holding)
     if (world.mouseHeld && WEAPONS[world.activeWeaponId]?.auto && Math.random()<0.3) {
       ctx.fillStyle='rgba(255,240,180,0.8)';
       ctx.beginPath(); ctx.arc(34,0,4+Math.random()*4,0,Math.PI*2); ctx.fill();
@@ -1530,17 +1683,6 @@ function App() {
     setGameState('playing');
   };
 
-  const selectUpgrade = (upgrade) => {
-    upgrade.apply(world);
-    world.weather = weatherForWave(world.wave);
-    world.waveDroneBudget = 3 + Math.floor(world.wave*1.7) + Math.floor(world.spottedBase*2);
-    world.spawnTimer = 0.8;
-    WEAPON_ORDER.forEach(id => { const rt=world.weaponRuntime[id]; if (rt) rt.reserve += Math.ceil((WEAPONS[id].reserve||20)*0.16*(1+world.upgrades.ammo)); });
-    setWaveFlash(world.wave);
-    setTimeout(() => setWaveFlash(null), 1800);
-    setGameState('playing');
-  };
-
   const activeWeapon = WEAPONS[activeWeaponId];
 
   return (
@@ -1567,7 +1709,6 @@ function App() {
 
           {waveFlash && <div className="wave-banner"><div className="wnum">— ВОЛНА {waveFlash} —</div></div>}
 
-          {/* Ammo counter */}
           <div style={{position:'absolute',right:16,bottom:120,zIndex:20,textAlign:'right'}}>
             <div className="hud-block">
               <div className="hud-label">{activeWeapon.nameRu}</div>
@@ -1584,7 +1725,6 @@ function App() {
             </div>
           </div>
 
-          {/* Lock-on window */}
           {activeWeapon.lockWindow && (
             <div className="lock-window">
               <div className="lw-title">{activeWeapon.nameRu} · ЦЕЛЕУКАЗАНИЕ</div>
@@ -1597,7 +1737,6 @@ function App() {
             </div>
           )}
 
-          {/* Weapon bar */}
           <div className="weapon-bar">
             {WEAPON_ORDER.map(id => {
               const w=WEAPONS[id];
@@ -1625,12 +1764,10 @@ function App() {
             {activeWeapon.auto?'Удерживайте ЛКМ — авто-огонь':'ЛКМ — выстрел'} · 1–9/0 оружие · G радар · R перезарядка
           </div>
 
-          {/* Miss indicators */}
           {missIndicators.map(m => (
             <div key={m.id} className="miss-flash" style={{left:m.x,top:m.y}}>MISS</div>
           ))}
 
-          {/* Popups */}
           <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,pointerEvents:'none',zIndex:55}}>
             {miniRadar && (
               <div className="mini-radar-popup">
@@ -1690,25 +1827,6 @@ function App() {
         </div>
       )}
 
-
-      {gameState==='upgrade' && (
-        <div className="overlay-screen">
-          <h1>КОМАНДНЫЙ ПУНКТ</h1>
-          <div className="sub">
-            Волна {world.wave-1} отражена. Погода следующей волны: <span style={{color:'var(--amber)'}}>{weatherForWave(world.wave).name}</span>.<br/>
-            Выберите одно улучшение перед следующей атакой. Разведка противника: {Math.round(world.spottedBase*100)}%.
-          </div>
-          <div className="upgrade-row">
-            {upgradeOptions.map(u => (
-              <button className="upgrade-card" key={u.id} onClick={() => selectUpgrade(u)}>
-                <div className="u-title">{u.label}</div>
-                <div className="u-desc">{u.desc}</div>
-              </button>
-            ))}
-          </div>
-          <button className="mute-btn" onClick={toggleMute}>{muted ? 'Звук выключен' : 'Звук включён'}</button>
-        </div>
-      )}
 
       {gameState==='gameover' && (
         <div className="overlay-screen">
